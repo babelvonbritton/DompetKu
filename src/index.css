@@ -1,0 +1,1862 @@
+/* DompetKu v0.2.8 — Porto green theme.
+   Pearl #FAF7F2 + dark green #0C3B2E, Fraunces + Inter.
+   Solid colors only, no gradients. Mobile-first, 44px touch targets,
+   safe-area insets, keyboard-aware chat layout.
+   Motion (MOTION 2): tab switches use the View Transitions API, messages
+   enter with @starting-style, the budget fill slides with transform, and
+   buttons press in slightly. Every spatial motion is gated to
+   prefers-reduced-motion: no-preference; color feedback stays on. */
+
+/* Fonts are self-hosted (public/fonts), not loaded from Google Fonts, so
+   opening the app sends no request to any third party. Latin subset only;
+   both files are variable fonts (one file per family). */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+  src: url('/fonts/fraunces-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/inter-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light;
+  --paper: #faf7f2;
+  --paper-deep: #f1eadd;
+  --card: #ffffff;
+  --ink: #0c3b2e;
+  --ink-soft: #234b3f;
+  --text: #1c1c1c;
+  --muted: #6b6259;
+  --line: #e5ddd0;
+  --amber: #b7791f;
+  --amber-bg: #fff4d6;
+  --amber-line: #e3c878;
+  --red: #b3261e;
+  --red-bg: #fbefea;
+  --green: #2e6b45;
+  --shadow: 0 8px 24px rgba(12, 59, 46, 0.16);
+  --sans: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --display: 'Fraunces', Georgia, serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: #e7e1d3;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+  line-height: 1.25;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--ink);
+}
+
+button {
+  font-family: inherit;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- App shell ---------- */
+
+.app {
+  width: min(480px, 100%);
+  margin: 0 auto;
+  min-height: 100dvh;
+  height: 100dvh;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (min-width: 520px) {
+  .app {
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    box-shadow: 0 0 40px rgba(12, 59, 46, 0.12);
+  }
+}
+
+.app-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.screen-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-bottom: 1.5rem;
+  scroll-padding-bottom: 6rem;
+}
+
+/* ---------- Headings & text ---------- */
+
+.page-head {
+  padding: 1rem 1rem 0.4rem;
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+}
+
+.page-head h1 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.5rem;
+  color: var(--ink);
+}
+
+.page-head p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1rem 0.4rem;
+}
+
+.section-head h2 {
+  font-size: 1rem;
+  margin: 0;
+  color: var(--ink);
+}
+
+.day-head {
+  padding: 0.9rem 1rem 0.2rem;
+  font-size: 1rem;
+  margin: 0;
+  color: var(--ink);
+}
+
+.muted-text {
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 0 1rem;
+}
+
+.text-button {
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-block-size: 44px;
+  padding: 0 0.4rem;
+}
+
+.text-button.danger {
+  color: var(--red);
+}
+
+.text-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---------- Buttons & forms ---------- */
+
+.button-primary {
+  display: block;
+  width: calc(100% - 2rem);
+  margin: 0.9rem 1rem 0;
+  min-block-size: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button-primary.small {
+  width: auto;
+  margin: 0;
+  padding: 0 1.1rem;
+  min-block-size: 44px;
+}
+
+.button-ghost {
+  display: block;
+  width: calc(100% - 2rem);
+  margin: 0.6rem 1rem 0;
+  min-block-size: 48px;
+  border: 1.5px solid var(--ink);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button-ghost.small {
+  width: auto;
+  margin: 0;
+  padding: 0 1rem;
+  min-block-size: 44px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.form.compact {
+  padding: 0.9rem 0 0.2rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.field label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.field input,
+.field select {
+  min-block-size: 48px;
+  border: 1px solid #d8cfc0;
+  border-radius: 12px;
+  padding: 0.6rem 0.9rem;
+  font-size: 1rem;
+  font-family: inherit;
+  background: var(--card);
+  color: var(--text);
+  width: 100%;
+}
+
+.field input:focus-visible,
+.field select:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ---------- Custom pickers (branded-select-styling) ----------
+   The native <select> keeps its semantics, keyboard handling and form
+   integration; appearance: base-select lets the trigger, the picker list,
+   the arrow and the checkmark wear the site theme. Firefox ignores
+   base-select and falls back to its native dropdown — the trigger itself
+   still looks themed, since those are ordinary properties. */
+.field select {
+  appearance: base-select;
+  cursor: pointer;
+  text-align: left;
+}
+
+.field select::picker(select) {
+  appearance: base-select;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 0.35rem;
+  margin-top: 0.35rem;
+  max-height: min(16rem, 60dvh);
+  font-size: 0.95rem;
+}
+
+@supports (width: anchor-size(width)) {
+  .field select::picker(select) {
+    width: anchor-size(width);
+  }
+}
+
+.field select::picker-icon {
+  color: var(--ink);
+}
+
+.field select:open::picker-icon {
+  transform: rotate(180deg);
+}
+
+.field select option {
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  color: var(--text);
+}
+
+.field select option:hover {
+  background: var(--paper-deep);
+}
+
+/* Checked state gets two indicators (bold + tint), never color alone. */
+.field select option:checked {
+  font-weight: 700;
+  background: var(--paper-deep);
+  color: var(--ink);
+}
+
+.field select option::checkmark {
+  color: var(--ink);
+}
+
+/* The file dialog itself is drawn by the OS and no website can theme it —
+   but the button that opens it can wear the site theme. */
+.field input[type='file']::file-selector-button {
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.5rem 0.9rem;
+  margin-right: 0.7rem;
+  cursor: pointer;
+}
+
+/* Drive actions stack full-width instead of crowding into one flex row:
+   at 390px three small buttons in a row squeezed until their labels
+   wrapped to two lines. Each action gets its own line now. */
+.drive-actions {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+}
+
+.drive-actions .button-primary.small,
+.drive-actions .button-ghost.small {
+  width: 100%;
+  text-align: center;
+}
+
+.drive-actions .text-button {
+  justify-self: start;
+  padding-inline: 0.2rem;
+}
+
+.field-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.field-row .field {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.form-error {
+  margin: 0;
+  color: var(--red);
+  font-size: 0.9rem;
+}
+
+.form-status {
+  margin: 0 1rem;
+  color: var(--green);
+  font-size: 0.9rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.guide-steps {
+  margin: 0.5rem 0;
+  padding-left: 1.3rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.radio-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.radio-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-block-size: 44px;
+  padding: 0.4rem 0.9rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.radio-pill:has(input:checked) {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.radio-pill input {
+  accent-color: var(--ink);
+}
+
+/* ---------- Compact switch row (switch) ---------- */
+/* The parser fallback is one row: label + hint on the left, a native
+   switch on the right. The switch attribute renders natively in Safari;
+   elsewhere the same control is styled as a switch (appearance: none,
+   track via inset box-shadow, thumb via background) so it looks the same
+   in every browser without a runtime polyfill. */
+
+.setting-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  cursor: pointer;
+}
+
+.setting-row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.setting-row-title {
+  display: block;
+  font-weight: 600;
+}
+
+.setting-row-hint {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.setting-row:has(input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+input[type='checkbox'][switch] {
+  appearance: none;
+  flex: none;
+  width: 40px;
+  height: 24px;
+  /* The generic .field input rule gives every input a 48px min height and
+     padding — a switch must opt out of both. */
+  min-block-size: 0;
+  padding: 0;
+  margin: 2px 0 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset -20px 0 0 0 var(--line);
+  accent-color: var(--ink);
+  cursor: pointer;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+input[type='checkbox'][switch]:checked {
+  border-color: var(--ink);
+  box-shadow: inset 20px 0 0 0 var(--ink);
+}
+
+input[type='checkbox'][switch]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input[type='checkbox'][switch]:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* ---------- Icon button ---------- */
+
+.icon-button {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.icon-button:active {
+  transform: scale(0.95);
+}
+
+/* ---------- Chat settings sheet (dialog) ---------- */
+/* Native modal dialog: the browser provides the top layer, focus
+   containment, Esc/back-gesture dismissal and focus return. Scroll
+   chaining is contained with overscroll-behavior (never overflow: hidden
+   on html/body). The sheet slides up on entry, mirroring the app's
+   @starting-style message/menu motion. */
+
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+.chat-sheet {
+  margin: auto auto 0;
+  width: 100%;
+  max-width: 560px;
+  max-height: 86dvh;
+  padding: 0;
+  border: 0;
+  border-radius: 20px 20px 0 0;
+  background: var(--paper);
+  color: var(--text);
+  box-shadow: 0 -8px 32px rgba(12, 59, 46, 0.25);
+}
+
+.chat-sheet[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-sheet::backdrop {
+  background: rgba(12, 59, 46, 0.45);
+}
+
+.chat-sheet .sheet-handle {
+  width: 40px;
+  height: 4px;
+  flex: none;
+  margin: 0.6rem auto 0;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.chat-sheet .sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex: none;
+  padding: 0.4rem 0.5rem 0.4rem 1.25rem;
+}
+
+.chat-sheet .sheet-head h1 {
+  font-family: var(--display);
+  font-size: 1.2rem;
+  margin: 0;
+  color: var(--ink);
+}
+
+.chat-sheet .sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.2rem 1.25rem 1.5rem;
+}
+
+.chat-sheet .settings-section {
+  margin: 0.6rem 0;
+}
+
+.button-ghost.danger {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.button-primary.danger {
+  background: var(--red);
+}
+
+/* ---------- Confirm dialog (centered modal) ---------- */
+/* A small centered dialog for destructive confirmations, e.g. clearing
+   the chat. The sheet's inline two-step button was too easy to miss. */
+
+.confirm-dialog {
+  margin: auto;
+  width: calc(100% - 2rem);
+  max-width: 400px;
+  padding: 1.25rem;
+  border: 0;
+  border-radius: 20px;
+  background: var(--paper);
+  color: var(--text);
+  box-shadow: 0 12px 40px rgba(12, 59, 46, 0.3);
+}
+
+.confirm-dialog::backdrop {
+  background: rgba(12, 59, 46, 0.45);
+}
+
+.confirm-dialog h1 {
+  font-family: var(--display);
+  font-size: 1.2rem;
+  margin: 0 0 0.5rem;
+  color: var(--ink);
+}
+
+.confirm-dialog p {
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.dialog-actions .button-ghost,
+.dialog-actions .button-primary {
+  flex: 1;
+  width: auto;
+  margin: 0;
+  min-block-size: 48px;
+}
+
+/* ---------- Dashboard ---------- */
+
+.dash-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1rem 0.6rem;
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.dash-head .date {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.8;
+}
+
+.dash-head h1 {
+  margin: 0.1rem 0 0;
+  font-family: var(--display);
+  font-size: 1.3rem;
+}
+
+.balance-card {
+  margin: 0.9rem 1rem 0;
+  padding: 0.9rem 1rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.balance-label {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.balance-value {
+  margin: 0.15rem 0;
+  font-family: var(--display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.balance-sub {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.balance-sub strong {
+  color: var(--text);
+}
+
+.warn-strip {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  width: calc(100% - 2rem);
+  margin: 0.7rem 1rem 0;
+  padding: 0.65rem 0.8rem;
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-line);
+  border-radius: 12px;
+  color: #5b4a12;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.warn-strip svg {
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+}
+
+.warn-strip span {
+  line-height: 1.4;
+}
+
+.nudge-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  width: calc(100% - 2rem);
+  margin: 0.7rem 1rem 0;
+  padding: 0.75rem 0.9rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.wallet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.2rem 1rem 0.4rem;
+}
+
+.wallet-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0.75rem 0.9rem;
+  text-align: left;
+  width: 100%;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+button.wallet-card {
+  cursor: pointer;
+}
+
+.wallet-card.static {
+  cursor: default;
+}
+
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.9rem;
+}
+
+.card-row strong {
+  white-space: nowrap;
+}
+
+.wallet-name {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.card-note {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0.4rem 0 0;
+  line-height: 1.4;
+}
+
+.card-note strong {
+  color: var(--text);
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.add-wallet {
+  margin: 0.6rem 1rem 1rem;
+  min-block-size: 48px;
+  border: 1.5px dashed var(--ink);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: calc(100% - 2rem);
+}
+
+.progress {
+  height: 8px;
+  border-radius: 999px;
+  background: #efe9dd;
+  margin: 0.45rem 0 0.2rem;
+  overflow: hidden;
+}
+
+.progress-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 999px;
+  transform-origin: left;
+}
+
+.progress-green {
+  background: var(--green);
+}
+
+.progress-amber {
+  background: var(--amber);
+}
+
+.progress-red {
+  background: var(--red);
+}
+
+.activity {
+  list-style: none;
+  margin: 0;
+  padding: 0.2rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.activity li {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid #efe9dd;
+  min-block-size: 44px;
+}
+
+.act-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.act-text {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: 0.92rem;
+  overflow-wrap: break-word;
+}
+
+.act-text small {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.activity strong {
+  white-space: nowrap;
+  font-size: 0.92rem;
+}
+
+.empty-state {
+  padding: 1.5rem 1rem;
+  text-align: center;
+}
+
+.empty-title {
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.empty-text {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0.3rem 0 0;
+}
+
+/* ---------- Chat ---------- */
+
+.chat-screen {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  padding-top: max(0.6rem, env(safe-area-inset-top, 0px));
+  background: var(--ink);
+  color: var(--paper);
+  flex: 0 0 auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-inline-size: 0;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.avatar.small {
+  width: 36px;
+  height: 36px;
+  font-size: 1rem;
+}
+
+.brand-text h1 {
+  font-size: 1.05rem;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.brand-text p {
+  font-size: 0.75rem;
+  margin: 0;
+  opacity: 0.8;
+}
+
+.wallet-pill {
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid rgba(250, 247, 242, 0.6);
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  white-space: nowrap;
+}
+
+.key-reminder {
+  margin: 0.7rem 1rem 0;
+  padding: 0.7rem 0.85rem;
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-line);
+  border-radius: 12px;
+  color: #5b4a12;
+  font-size: 0.88rem;
+  flex: 0 0 auto;
+}
+
+.key-reminder p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.key-reminder-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.55rem;
+}
+
+.key-reminder-actions button {
+  min-block-size: 44px;
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.key-reminder-actions button:first-child {
+  background: var(--ink);
+  color: var(--paper);
+  border: 0;
+}
+
+.key-reminder-actions button:last-child {
+  background: transparent;
+  color: #5b4a12;
+  border: 1px solid #c9b458;
+}
+
+.chat-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.9rem;
+  scroll-padding-bottom: 6rem;
+}
+
+.msg {
+  max-width: 88%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.msg p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  /* The /bantuan reply lists commands on separate lines. */
+  white-space: pre-line;
+}
+
+.msg.user {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.msg.user p {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.6rem 0.8rem;
+  border-radius: 16px 16px 4px 16px;
+}
+
+.msg.assistant {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.msg.assistant > p {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 0.6rem 0.8rem;
+  border-radius: 16px 16px 16px 4px;
+}
+
+.msg.system > p {
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-line);
+  padding: 0.6rem 0.8rem;
+  border-radius: 12px;
+}
+
+.typing {
+  opacity: 0.7;
+}
+
+.typing-dots {
+  display: inline-flex;
+  gap: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.typing-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.time {
+  font-size: 0.68rem;
+  color: var(--muted);
+  padding: 0 0.3rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0.7rem 0.8rem;
+  margin-top: 0.35rem;
+  width: 100%;
+}
+
+.card.tone-warn {
+  background: var(--amber-bg);
+  border-color: var(--amber-line);
+}
+
+.card.tone-danger {
+  background: var(--red-bg);
+  border-color: #e4b7af;
+}
+
+.card-title {
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 0.35rem;
+  font-size: 0.92rem;
+}
+
+.chips {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.5rem 0.9rem;
+  flex: 0 0 auto;
+  scrollbar-width: none;
+}
+
+.chips button {
+  flex: 0 0 auto;
+  min-block-size: 44px;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chips button:disabled {
+  opacity: 0.5;
+}
+
+.chips .chip-active {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.composer {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.6rem 0.9rem;
+  padding-bottom: max(0.6rem, env(safe-area-inset-bottom, 0px));
+  padding-left: max(0.9rem, env(safe-area-inset-left, 0px));
+  padding-right: max(0.9rem, env(safe-area-inset-right, 0px));
+  background: var(--card);
+  border-top: 1px solid var(--line);
+  flex: 0 0 auto;
+}
+
+.composer input {
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: 44px;
+  border: 1px solid #d8cfc0;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  font-size: 1rem;
+  background: var(--paper);
+  color: var(--text);
+  font-family: inherit;
+}
+
+.send {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--ink);
+  color: var(--paper);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.send:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---------- Slash-command menu ---------- */
+
+/* Sits between the quick replies and the composer, in flow so the virtual
+   keyboard never has to be measured: the message list shrinks to make room. */
+.slash-menu {
+  flex: 0 0 auto;
+  margin: 0.5rem 0.9rem 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 0.35rem;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.slash-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  width: 100%;
+  min-block-size: 44px;
+  padding: 0.5rem 0.7rem;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.slash-option .cmd {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.slash-option .desc {
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.slash-option:hover,
+.slash-option[aria-selected='true'] {
+  background: var(--paper-deep);
+}
+
+/* ---------- Category list (Settings) ---------- */
+
+.category-list {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.category-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid #efe9dd;
+  min-block-size: 44px;
+}
+
+.category-list li:last-child {
+  border-bottom: 0;
+}
+
+.category-name {
+  flex: 1;
+  min-inline-size: 0;
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: break-word;
+}
+
+.category-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  white-space: nowrap;
+}
+
+.category-edit {
+  display: flex;
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.category-edit input {
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: 44px;
+  border: 1px solid #d8cfc0;
+  border-radius: 12px;
+  padding: 0.5rem 0.8rem;
+  font: inherit;
+  background: var(--card);
+  color: var(--text);
+}
+
+/* ---------- Floating navbar ---------- */
+
+.tab-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.15rem;
+  margin: 0.55rem 0.75rem;
+  margin-bottom: max(0.55rem, env(safe-area-inset-bottom, 0px));
+  padding: 0.35rem 0.3rem;
+  background: var(--ink);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+}
+
+.tab {
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  background: transparent;
+  border: 0;
+  border-radius: 16px;
+  color: rgba(250, 247, 242, 0.65);
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.2rem 0;
+}
+
+.tab[aria-current='page'] {
+  color: var(--paper);
+}
+
+.tab-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.tab-center .tab-icon {
+  width: 56px;
+  height: 56px;
+  margin-top: -26px;
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.tab-center {
+  min-block-size: 64px;
+}
+
+.tab-label {
+  line-height: 1;
+}
+
+/* ---------- Setup & settings & policy ---------- */
+
+.setup {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 1.5rem 0 2rem;
+}
+
+.setup-kicker {
+  margin: 0 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.setup h1 {
+  margin: 0.4rem 1rem 0;
+  font-family: var(--display);
+  font-size: 1.6rem;
+  color: var(--ink);
+}
+
+.setup-intro {
+  margin: 0.5rem 1rem 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.setup-privacy {
+  margin: 1rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.settings-section {
+  margin: 0.9rem 1rem 0;
+  padding: 0.9rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.settings-section h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.02rem;
+  color: var(--ink);
+}
+
+.settings-section h3 {
+  margin: 0.9rem 0 0.3rem;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+
+.settings-section p {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.settings-section .field {
+  margin-bottom: 0.7rem;
+}
+
+.settings-section .copyright {
+  margin-bottom: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* ---------- Stepper (backup / restore progress) ---------- */
+
+.stepper {
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper-deep);
+}
+
+.stepper-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.stepper-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--green);
+  transition: width 0.25s ease;
+}
+
+.stepper-count {
+  margin: 0.5rem 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.step-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.step {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  font-size: 0.92rem;
+}
+
+.step-icon {
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.8rem;
+  line-height: 1;
+  background: var(--card);
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+.step-done .step-icon {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+.step-error .step-icon {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+
+.step-running .step-icon {
+  border-color: var(--green);
+  color: var(--green);
+  animation: step-spin 1s linear infinite;
+}
+
+@keyframes step-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.step-text {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.step-label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.step-pending .step-label {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.step-error .step-label {
+  color: var(--red);
+}
+
+.step-detail {
+  font-size: 0.85rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.step-error .step-detail {
+  color: var(--red);
+}
+
+/* ---------- Restore review dialog ---------- */
+
+.restore-review {
+  max-width: 460px;
+}
+
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 0.75rem;
+  font-size: 0.92rem;
+}
+
+.diff-table th,
+.diff-table td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+
+.diff-table td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.diff-table th[scope='col']:not(:first-child) {
+  text-align: right;
+}
+
+.diff-changes {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.safety-check {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.safety-check input {
+  flex: none;
+  margin-top: 0.15rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--ink);
+}
+
+/* ---------- Toast ---------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: calc(100% - 2rem);
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #faf7f2;
+  font-size: 0.92rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.policy {
+  padding: 0 1rem 1.5rem;
+}
+
+.policy h2 {
+  font-size: 1.05rem;
+  color: var(--ink);
+  margin: 1.2rem 0 0.35rem;
+}
+
+.policy p {
+  margin: 0 0 0.7rem;
+  font-size: 0.93rem;
+  line-height: 1.6;
+}
+
+/* ---------- Motion (gated to users who want it) ---------- */
+
+/* Tab switches: the View Transitions API cross-fades the old and new view.
+   Browsers without it fall back to an instant switch. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Messages slide in as they arrive (opacity + transform only, so the
+     animation stays on the compositor thread). */
+  .msg {
+    transition:
+      opacity 0.18s ease-out,
+      translate 0.18s ease-out;
+  }
+
+  @starting-style {
+    .msg {
+      opacity: 0;
+      translate: 0 6px;
+    }
+  }
+
+  /* The budget fill grows from the left instead of jumping. */
+  .progress-fill {
+    transition: transform 0.5s ease;
+  }
+
+  /* The slash-command menu fades and slides in slightly. */
+  .slash-menu {
+    transition:
+      opacity 0.15s ease,
+      translate 0.15s ease;
+  }
+
+  @starting-style {
+    .slash-menu {
+      opacity: 0;
+      translate: 0 4px;
+    }
+  }
+
+  /* The chat settings sheet slides up from the bottom on entry. */
+  .chat-sheet[open] {
+    transition:
+      opacity 0.2s ease,
+      translate 0.2s ease;
+  }
+
+  @starting-style {
+    .chat-sheet[open] {
+      opacity: 0;
+      translate: 0 24px;
+    }
+  }
+
+  /* Press feedback on the controls that do things. */
+  .button-primary,
+  .button-ghost,
+  .tab,
+  .chips button,
+  .slash-option,
+  .send,
+  .text-button,
+  .add-wallet,
+  .warn-strip,
+  .nudge-card,
+  button.wallet-card,
+  .key-reminder-actions button {
+    transition:
+      transform 0.12s ease,
+      background-color 0.15s ease,
+      opacity 0.15s ease;
+  }
+
+  .button-primary:active,
+  .button-ghost:active,
+  .tab:active,
+  .chips button:active,
+  .slash-option:active,
+  .send:active,
+  .text-button:active,
+  .add-wallet:active,
+  .warn-strip:active,
+  .nudge-card:active,
+  button.wallet-card:active,
+  .key-reminder-actions button:active {
+    transform: scale(0.97);
+  }
+
+  /* The picker list fades and slides in slightly (animated-select-picker).
+     display + overlay with allow-discrete keep it in the top layer until
+     the close transition ends; @starting-style supplies the before-values. */
+  .field select::picker(select) {
+    opacity: 1;
+    translate: 0 0;
+    transition:
+      display,
+      overlay,
+      opacity 0.15s ease,
+      translate 0.15s ease;
+    transition-behavior: allow-discrete;
+  }
+
+  @starting-style {
+    .field select:open::picker(select) {
+      opacity: 0;
+      translate: 0 -4px;
+    }
+  }
+
+  .field select::picker-icon {
+    transition: transform 0.15s ease;
+  }
+
+  /* Typing dots pulse in turn while the reply is being typed. The
+     indicator lasts at most 2.8s, so it needs no pause control. */
+  .typing-dots span {
+    animation: typing-dot 1.2s ease-in-out infinite;
+  }
+
+  .typing-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .typing-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes typing-dot {
+    0%,
+    60%,
+    100% {
+      opacity: 0.3;
+    }
+
+    30% {
+      opacity: 1;
+    }
+  }
+}
+
+@media (pointer: coarse) {
+  .tab,
+  .chips button,
+  .composer input,
+  .send,
+  .text-button,
+  .radio-pill {
+    min-block-size: 44px;
+  }
+}

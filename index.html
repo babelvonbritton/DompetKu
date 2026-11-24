@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Content Security Policy: the app talks only to itself, to Google's
+         Gemini API, and to Google's Drive / sign-in endpoints. No other
+         site can load a script, style, font, or frame here, and no request
+         leaves the app except the ones listed. style-src keeps
+         'unsafe-inline' for one dynamic style (the budget bar's width).
+         Note: frame-ancestors is deliberately absent — it is ignored in a
+         <meta> tag and only works as a server header, which GitHub Pages
+         cannot send. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://accounts.google.com; connect-src 'self' https://generativelanguage.googleapis.com https://www.googleapis.com https://oauth2.googleapis.com https://accounts.google.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; frame-src https://accounts.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
+    />
+    <meta name="theme-color" content="#0C3B2E" />
+    <meta
+      name="description"
+      content="DompetKu — pelacak anggaran lewat chat. Semua data tersimpan di perangkatmu."
+    />
+    <title>DompetKu</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
