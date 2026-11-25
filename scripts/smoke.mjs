@@ -601,6 +601,25 @@ try {
     cspErrors.join(' | '),
   );
 
+  // v1.0.3: the setup skip is real — "Lewati dulu" finishes setup with
+  // no wallet and never asks for a name, and the app still works: the
+  // dashboard nudges to create a wallet, and chat says so plainly
+  // instead of asking which wallet with only a Batal button.
+  await page.evaluate(() => indexedDB.deleteDatabase('dompetku'));
+  await page.reload({ waitUntil: 'networkidle' });
+  check('setup screen shows again after clearing data', await page.getByText('Buat dompet pertamamu').isVisible());
+  await page.getByRole('button', { name: 'Lewati dulu' }).click();
+  await page.getByText('Sisa bulan ini').waitFor({ timeout: 5000 });
+  check(
+    'skipping setup lands on the dashboard with no wallet',
+    (await page.getByText('Kamu belum punya dompet.').count()) >= 1,
+  );
+  await page.getByRole('button', { name: 'Chat', exact: true }).click();
+  await page.fill('#chat-input', 'Makan siang 45rb');
+  await page.getByRole('button', { name: 'Kirim pesan' }).click();
+  await page.getByText('Kamu belum punya dompet.').last().waitFor({ timeout: 15000 });
+  check('chat with no wallet says so plainly', true);
+
   // ---------- Desktop 1280px (same context: data must persist) ----------
   const page2 = await ctx.newPage();
   await page2.setViewportSize({ width: 1280, height: 800 });

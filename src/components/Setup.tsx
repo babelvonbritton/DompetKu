@@ -9,7 +9,7 @@ import { uid } from '../lib/types';
 export function Setup({
   onDone,
 }: {
-  onDone: (wallet: Wallet, settings: Partial<Settings>) => Promise<void>;
+  onDone: (wallet: Wallet | null, settings: Partial<Settings>) => Promise<void>;
 }) {
   const [name, setName] = useState('');
   const [budget, setBudget] = useState('');
@@ -45,6 +45,12 @@ export function Setup({
     await onDone(wallet, { setupDone: true });
   }
 
+  async function skip(): Promise<void> {
+    // A real skip: no wallet is created, and the name is never demanded.
+    // The user can add a wallet later from the Dompet tab.
+    await onDone(null, { setupDone: true });
+  }
+
   return (
     <div className="setup">
       <p className="setup-kicker">Selamat datang di DompetKu</p>
@@ -52,7 +58,8 @@ export function Setup({
       <p className="setup-intro">
         Dompet adalah wadah anggaranmu — contohnya Makan, Transportasi, atau
         Jajan. Kamu mencatat pengeluaran lewat chat, dan DompetKu yang
-        menghitung sisanya.
+        menghitung sisanya. Boleh dilewati — dompet bisa dibuat nanti di tab
+        Dompet.
       </p>
       <form
         className="form"
@@ -138,6 +145,13 @@ export function Setup({
           onClick={() => void submit(false)}
         >
           Lewati anggaran dulu
+        </button>
+        <button
+          type="button"
+          className="text-button"
+          onClick={() => void skip()}
+        >
+          Lewati dulu
         </button>
       </form>
       <p className="setup-privacy">

@@ -135,10 +135,10 @@ export default function App() {
   }
 
   async function handleSetupDone(
-    wallet: Wallet,
+    wallet: Wallet | null,
     patch: Partial<Settings>,
   ): Promise<void> {
-    await stores.wallets.add(wallet);
+    if (wallet) await stores.wallets.add(wallet);
     const s = await stores.settings.save(patch);
     setSettings(s);
     await refreshData();

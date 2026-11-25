@@ -117,6 +117,31 @@ describe('wallet disambiguation', () => {
   });
 });
 
+describe('no wallets yet', () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+    stores = createStores(db);
+    engine = new ChatEngine(stores);
+    await stores.settings.save({ ...defaultSettings(), setupDone: true });
+    await stores.categories.bulkAdd(STARTER_CATEGORIES);
+  });
+
+  it('says plainly there is no wallet instead of asking which one', async () => {
+    const reply = await engine.handle('Makan siang 45rb', null);
+    expect(reply.messages[0].text).toContain('Kamu belum punya dompet');
+    expect(engine.getPending()).toBeNull();
+    expect(await stores.transactions.listAll()).toHaveLength(0);
+  });
+
+  it('a wallet can be created from chat after that', async () => {
+    const reply = await engine.handle('buat dompet Makan', null);
+    expect(reply.messages[0].text).toContain('Dompet "Makan" sudah dibuat');
+    const logged = await engine.handle('Makan siang 45rb', null);
+    expect(logged.messages[0].text).toBe('Sudah dicatat.');
+  });
+});
+
 describe('help', () => {
   it('lists every slash command', async () => {
     const reply = await engine.handle('/bantuan', null);

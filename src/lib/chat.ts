@@ -251,6 +251,21 @@ export class ChatEngine {
     source: TransactionSource,
     now: Date,
   ): Promise<EngineReply> {
+    // With no wallet at all there is nothing to pick from — say so plainly
+    // instead of asking "dompet mana?" with only a Batal button.
+    if (
+      wallets.length === 0 &&
+      (intent.kind === 'log_expense' ||
+        intent.kind === 'set_budget' ||
+        intent.kind === 'set_warn')
+    ) {
+      const messages = [
+        assistant(
+          'Kamu belum punya dompet. Buat dulu di tab Dompet, atau tulis di sini: buat dompet Makan.',
+        ),
+      ];
+      return { messages, typingMs: typingDelayMs(messages) };
+    }
     switch (intent.kind) {
       case 'log_expense':
         return this.executeLogExpense(intent, wallets, categories, source, now);

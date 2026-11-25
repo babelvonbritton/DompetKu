@@ -142,7 +142,20 @@ export function Dashboard({
         }
       />
       <div className="wallet-list">
-        {walletStats.map(({ wallet, spent, status }) => (
+        {walletStats.length === 0 ? (
+          <button
+            type="button"
+            className="nudge-card"
+            onClick={() => onTab('wallets')}
+          >
+            <span>
+              <strong>Kamu belum punya dompet.</strong> Buat dompet
+              pertamamu supaya pengeluaranmu tercatat.
+            </span>
+            <span aria-hidden="true">›</span>
+          </button>
+        ) : (
+          walletStats.map(({ wallet, spent, status }) => (
           <button
             key={wallet.id}
             type="button"
@@ -170,7 +183,8 @@ export function Dashboard({
               <span className="card-note">Ketuk untuk mengatur anggaran.</span>
             )}
           </button>
-        ))}
+          ))
+        )}
       </div>
 
       <SectionHead
