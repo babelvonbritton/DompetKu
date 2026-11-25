@@ -1,4 +1,4 @@
-// DompetKu v1.0.3 — quick first-run setup.
+// DompetKu v1.0.4 — quick first-run setup.
 // One wallet + budget first; the API key comes later (the chat reminds).
 
 import { useState } from 'react';
@@ -17,14 +17,18 @@ export function Setup({
   const [warnPercent, setWarnPercent] = useState('80');
   const [error, setError] = useState('');
 
-  async function submit(withBudget: boolean): Promise<void> {
+  async function submit(): Promise<void> {
     const cleanName = name.trim().slice(0, 40);
     if (!cleanName) {
       setError('Beri nama dompetmu dulu, contoh: Makan.');
       return;
     }
+    // The budget is optional: a blank field means "no budget yet". That
+    // used to be a second button ("Lewati anggaran dulu"), but it did
+    // exactly what an empty budget field does — so the button is gone
+    // and this is the only way to create a wallet.
     let budgetAmount: number | null = null;
-    if (withBudget) {
+    if (budget.trim()) {
       const parsed = parseAmountId(budget);
       if (parsed === null) {
         setError('Anggaran belum kebaca. Contoh: 2 juta atau 2000000.');
@@ -65,7 +69,7 @@ export function Setup({
         className="form"
         onSubmit={(e) => {
           e.preventDefault();
-          void submit(true);
+          void submit();
         }}
       >
         <div className="field">
@@ -138,13 +142,6 @@ export function Setup({
         ) : null}
         <button type="submit" className="button-primary">
           Buat dompet
-        </button>
-        <button
-          type="button"
-          className="button-ghost"
-          onClick={() => void submit(false)}
-        >
-          Lewati anggaran dulu
         </button>
         <button
           type="button"

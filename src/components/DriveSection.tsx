@@ -1,4 +1,4 @@
-// DompetKu v1.0.3 — Google Drive backup section in Settings.
+// DompetKu v1.0.4 — Google Drive backup section in Settings.
 // Single sign-on: the app ships one shared OAuth client ID
 // (DEFAULT_DRIVE_CLIENT_ID in lib/drive.ts), so users just tap Hubungkan
 // and pick their Google account. A user can still paste their own Client ID;
@@ -317,7 +317,7 @@ export function DriveSection({
         {connected ? (
           <button
             type="button"
-            className="text-button"
+            className="text-button danger"
             onClick={() =>
               void run(() => onDriveDisconnect(), 'Google Drive diputuskan.')
             }

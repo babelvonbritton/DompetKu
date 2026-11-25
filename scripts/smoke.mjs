@@ -1,4 +1,4 @@
-// DompetKu v1.0.3 — real-browser smoke test (Playwright).
+// DompetKu v1.0.4 — real-browser smoke test (Playwright).
 // Run: SMOKE_URL=http://localhost:4173/ node scripts/smoke.mjs
 // Uses the Playwright install from the Brewfolio tree (NODE_PATH).
 import { chromium } from '/home/hatch/workspace/brewfolio-v110/node_modules/playwright/index.mjs';
@@ -472,6 +472,12 @@ try {
     'Drive backup updates the last-backup date',
     ((await page.locator('section[aria-labelledby="drive-heading"] p').first().textContent()) ?? '').includes('cadangan terakhir'),
   );
+  // v1.0.4: disconnecting Drive is destructive, so Putuskan reads as a
+  // danger button, not a plain dark-green text button.
+  check(
+    'Drive disconnect is a danger button',
+    ((await page.getByRole('button', { name: 'Putuskan' }).getAttribute('class')) ?? '').includes('danger'),
+  );
 
   // v1.0.3: Drive restore is two-phase — the first tap fetches and holds
   // the backup, the passphrase is filled afterwards, the second tap
@@ -492,8 +498,8 @@ try {
   await page.getByRole('button', { name: 'Pengaturan', exact: true }).click();
   await expandSection(page, 'Tentang');
   check(
-    'About shows DompetKu 1.0.3',
-    await page.getByText('DompetKu 1.0.3').isVisible(),
+    'About shows DompetKu 1.0.4',
+    await page.getByText('DompetKu 1.0.4').isVisible(),
   );
   check(
     'About shows the copyright',
@@ -605,6 +611,21 @@ try {
   // no wallet and never asks for a name, and the app still works: the
   // dashboard nudges to create a wallet, and chat says so plainly
   // instead of asking which wallet with only a Batal button.
+  // v1.0.4: the budget is optional in the one submit, so the middle
+  // "Lewati anggaran dulu" button is gone — a name with a blank budget
+  // creates a wallet with no budget.
+  await page.evaluate(() => indexedDB.deleteDatabase('dompetku'));
+  await page.reload({ waitUntil: 'networkidle' });
+  check('setup screen shows again for the blank-budget check', await page.getByText('Buat dompet pertamamu').isVisible());
+  check(
+    'setup has two buttons, not three',
+    (await page.getByRole('button', { name: 'Lewati anggaran dulu' }).count()) === 0 &&
+      (await page.getByRole('button', { name: 'Lewati dulu' }).count()) === 1,
+  );
+  await page.fill('#setup-name', 'Jajan');
+  await page.getByRole('button', { name: 'Buat dompet' }).click();
+  await page.getByText('Sisa bulan ini').waitFor({ timeout: 5000 });
+  check('a blank budget still creates the wallet', true);
   await page.evaluate(() => indexedDB.deleteDatabase('dompetku'));
   await page.reload({ waitUntil: 'networkidle' });
   check('setup screen shows again after clearing data', await page.getByText('Buat dompet pertamamu').isVisible());
