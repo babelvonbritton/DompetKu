@@ -90,6 +90,10 @@ jobs:
             echo "could not mint an OIDC token." >&2
             exit 1
           fi
+          # Debug: print only the token's claims (aud/iss/sub), never the
+          # token itself, to check what audience the Pages API is seeing.
+          payload=$(echo "$id_token" | cut -d. -f2 | tr '_-' '/+' | awk '{ l=length($0)%4; print $0 (l==2?"==":l==3?"=":"") }' | base64 -d 2>/dev/null || true)
+          echo "oidc claims: $(echo "$payload" | jq -c '{aud, iss, sub}' 2>/dev/null || echo '<undecodable>')"
           build_version="${GITHUB_SHA}-${GITHUB_RUN_ATTEMPT}"
           http_response=$(curl -s -w "\n%{http_code}" -X POST \
             -H "Authorization: Bearer ${GH_TOKEN}" \
