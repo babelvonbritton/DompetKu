@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — real-browser smoke test (Playwright).
+// DompetKu v1.0.2 — real-browser smoke test (Playwright).
 // Run: SMOKE_URL=http://localhost:4173/ node scripts/smoke.mjs
 // Uses the Playwright install from the Brewfolio tree (NODE_PATH).
 import { chromium } from '/home/hatch/workspace/brewfolio-v110/node_modules/playwright/index.mjs';
@@ -13,6 +13,15 @@ const results = [];
 function check(name, ok, detail = '') {
   results.push({ name, ok });
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? ` — ${detail}` : ''}`);
+}
+
+// v1.0.2: Settings sections are collapsible and start folded. Expand one
+// by its heading toggle; a no-op when it is already open.
+async function expandSection(page, title) {
+  const toggle = page.locator('.settings-section-toggle', { hasText: title });
+  if ((await toggle.getAttribute('aria-expanded')) === 'false') {
+    await toggle.click();
+  }
 }
 
 const browser = await chromium.launch();
@@ -37,6 +46,36 @@ try {
       console.log('CONSOLE ERROR:', m.text());
       if (m.text().includes('Content Security Policy')) cspErrors.push(m.text());
     }
+  });
+  // v1.0.2: stub the Drive API so the Drive backup can be exercised
+  // without a real Google sign-in (the token is seeded into IndexedDB
+  // later, the same way a connected account leaves one behind).
+  // A fetch override, not page.route: route interception breaks fetches
+  // that go through the app's service worker (the favicon check failed
+  // with "Failed to fetch" while a route was registered).
+  await page.addInitScript(() => {
+    const origFetch = window.fetch.bind(window);
+    const calls = (window.__driveCalls = window.__driveCalls ?? []);
+    window.fetch = async (...args) => {
+      const url = String(args[0]);
+      if (url.includes('www.googleapis.com')) {
+        calls.push(`${args[1]?.method ?? 'GET'} ${url}`);
+        if (url.includes('/drive/v3/files?')) {
+          return new Response(JSON.stringify({ files: [] }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        if (url.includes('/upload/drive/v3/files')) {
+          return new Response(
+            JSON.stringify({ id: 'smoke-file-id', modifiedTime: new Date().toISOString() }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          );
+        }
+        return new Response('', { status: 404 });
+      }
+      return origFetch(...args);
+    };
   });
   await page.goto(BASE, { waitUntil: 'networkidle' });
 
@@ -135,11 +174,11 @@ try {
   // The form ids contain the save label ("Buat dompet"), so use attribute selectors.
   await page.locator('[id="wf-name-Buat dompet"]').fill('Transportasi');
   await page.locator('[id="wf-budget-Buat dompet"]').fill('500rb');
-  await page.selectOption('[id="wf-cycle-Buat dompet"]', '15');
+  await page.selectOption('[id="wf-cycle-Buat dompet"]', '31');
   await page.selectOption('[id="wf-warn-Buat dompet"]', '70');
   check(
-    'wallet form pickers accept a choice',
-    (await page.locator('[id="wf-cycle-Buat dompet"]').inputValue()) === '15' &&
+    'wallet form pickers accept a choice (cycle day 31)',
+    (await page.locator('[id="wf-cycle-Buat dompet"]').inputValue()) === '31' &&
       (await page.locator('[id="wf-warn-Buat dompet"]').inputValue()) === '70',
   );
   await page.getByRole('button', { name: 'Buat dompet', exact: true }).click();
@@ -175,8 +214,19 @@ try {
 
   // Settings: key guide + Drive section + local backup download
   await page.getByRole('button', { name: 'Pengaturan', exact: true }).click();
-  await page.getByText('Hubungkan Google Drive').waitFor({ timeout: 5000 });
-  check('Drive section visible', true);
+  // v1.0.2: sections start folded; the page reads as a short list of
+  // headings, and each opens from its own toggle.
+  await page.locator('.settings-section-toggle').first().waitFor({ timeout: 5000 });
+  check(
+    'settings sections start folded',
+    (await page.locator('.settings-section-toggle').count()) === 6 &&
+      (await page.locator('.settings-section-toggle[aria-expanded="true"]').count()) === 0,
+  );
+  await expandSection(page, 'Kunci API Gemini');
+  check(
+    'expanding a section shows its content',
+    await page.locator('#api-key').isVisible(),
+  );
   check(
     'API key guide link present',
     await page.getByRole('link', { name: 'aistudio.google.com/apikey' }).isVisible(),
@@ -211,10 +261,14 @@ try {
     'default model is gemini-3.5-flash-lite',
     (await page.locator('#api-model').inputValue()) === 'gemini-3.5-flash-lite',
   );
+  await expandSection(page, 'Tampilan awal');
   check(
     'launch tab choices present',
     (await page.getByText('Beranda', { exact: true }).count()) >= 1,
   );
+  await expandSection(page, 'Google Drive');
+  await page.getByText('Hubungkan Google Drive').waitFor({ timeout: 5000 });
+  check('Drive section visible', true);
   check(
     'Drive backup/restore buttons present',
     (await page.getByRole('button', { name: 'Cadangkan ke Drive' }).isVisible()) &&
@@ -246,6 +300,7 @@ try {
 
   // v1.0.0: two password fields, 8-char alphanumeric rule, step progress,
   // and a plain-ZIP backup with a v3 manifest (no more DMPT envelope).
+  await expandSection(page, 'Cadangkan & pulihkan');
   check(
     'backup has a confirmation field',
     (await page.locator('#export-pass-confirm').count()) === 1,
@@ -295,6 +350,8 @@ try {
   );
 
   // v1.0.0: importing the just-made backup finds the data up to date.
+  await page.getByRole('button', { name: 'Pengaturan', exact: true }).click();
+  await expandSection(page, 'Cadangkan & pulihkan');
   await page.fill('#import-pass', 'rahasia123');
   await page.setInputFiles('#import-file', backupPath);
   await page.getByText('Datamu sudah sama dengan cadangan').waitFor({ timeout: 15000 });
@@ -308,6 +365,7 @@ try {
   await page.getByRole('button', { name: 'Makan', exact: true }).click();
   await page.getByText('Sudah dicatat.').nth(3).waitFor({ timeout: 5000 });
   await page.getByRole('button', { name: 'Pengaturan', exact: true }).click();
+  await expandSection(page, 'Cadangkan & pulihkan');
   await page.fill('#import-pass', 'rahasia123');
   await page.setInputFiles('#import-file', backupPath);
   await page.getByRole('heading', { name: 'Pulihkan cadangan?' }).waitFor({ timeout: 15000 });
@@ -321,6 +379,7 @@ try {
   await page.getByText('teh').waitFor({ timeout: 5000 });
   check('cancel keeps the current data', true);
   await page.getByRole('button', { name: 'Pengaturan', exact: true }).click();
+  await expandSection(page, 'Cadangkan & pulihkan');
   await page.fill('#import-pass', 'rahasia123');
   await page.setInputFiles('#import-file', backupPath);
   await page.getByRole('heading', { name: 'Pulihkan cadangan?' }).waitFor({ timeout: 15000 });
@@ -335,18 +394,62 @@ try {
     (await page.getByText('teh').count()) === 0,
   );
 
+  // v1.0.2: Drive backup really uploads now (the fetch binding fix) and
+  // reports in its own section — stubbed Drive API, token seeded the way
+  // a connected account leaves one behind.
+  await page.evaluate(() => new Promise((resolve, reject) => {
+    const open = indexedDB.open('dompetku');
+    open.onsuccess = () => {
+      const db = open.result;
+      const tx = db.transaction('settings', 'readwrite');
+      const store = tx.objectStore('settings');
+      const getAll = store.getAll();
+      getAll.onsuccess = () => {
+        const rows = getAll.result;
+        if (!rows.length) { reject(new Error('no settings row')); return; }
+        store.put({ ...rows[0], driveAccessToken: 'smoke-token', driveTokenExpiresAt: Date.now() + 3600_000 });
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      };
+      getAll.onerror = () => reject(getAll.error);
+    };
+    open.onerror = () => reject(open.error);
+  }));
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: 'Pengaturan', exact: true }).click();
+  await expandSection(page, 'Google Drive');
+  await page.getByText('Status: Terhubung').waitFor({ timeout: 5000 });
+  await expandSection(page, 'Cadangkan & pulihkan');
+  await page.fill('#export-pass', 'rahasia123');
+  await page.fill('#export-pass-confirm', 'rahasia123');
+  await expandSection(page, 'Google Drive');
+  await page.getByRole('button', { name: 'Cadangkan ke Drive' }).click();
+  await page.getByText('Cadangan tersimpan di Google Drive.').waitFor({ timeout: 15000 });
+  check('Drive backup reports success in its section', true);
+  const driveCalls = await page.evaluate(() => window.__driveCalls ?? []);
+  check(
+    'Drive backup really called the Drive API',
+    driveCalls.some((c) => c.includes('/upload/drive/v3/files')),
+    driveCalls.join(' | '),
+  );
+  check(
+    'Drive backup updates the last-backup date',
+    ((await page.locator('section[aria-labelledby="drive-heading"] p').first().textContent()) ?? '').includes('cadangan terakhir'),
+  );
+
   // v1.0.0: About carries the version and the copyright.
   await page.getByRole('button', { name: 'Pengaturan', exact: true }).click();
-  await page.getByRole('heading', { name: 'Cadangkan & pulihkan' }).waitFor({ timeout: 5000 });
+  await expandSection(page, 'Tentang');
   check(
-    'About shows DompetKu 1.0.0',
-    await page.getByText('DompetKu 1.0.0').isVisible(),
+    'About shows DompetKu 1.0.2',
+    await page.getByText('DompetKu 1.0.2').isVisible(),
   );
   check(
     'About shows the copyright',
     await page.getByText('© 2026 Alzam A. Hak cipta dilindungi.').isVisible(),
   );
 
+  await expandSection(page, 'Privasi');
   await page.getByRole('button', { name: 'Baca kebijakan privasi' }).click();
   check(
     'privacy policy page opens',
@@ -367,7 +470,12 @@ try {
   // v0.2.8: category customization — add Jajan in the sheet, use it in
   // chat, delete it from the sheet.
   await page.getByRole('button', { name: 'Kembali' }).click();
-  await page.getByText('Hubungkan Google Drive').waitFor({ timeout: 5000 });
+  await page.getByRole('button', { name: 'Pengaturan', exact: true }).click();
+  await expandSection(page, 'Google Drive');
+  // The Drive account is still connected from the v1.0.2 backup block
+  // above, so the Hubungkan button is gone — the status line proves the
+  // section is open.
+  await page.getByText('Status: Terhubung').waitFor({ timeout: 5000 });
   await page.getByRole('button', { name: 'Chat', exact: true }).click();
   await page.getByRole('button', { name: 'Pengaturan chat' }).click();
   await page.getByRole('heading', { name: 'Pengaturan chat' }).waitFor({ timeout: 5000 });

@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — data stores.
+// DompetKu v1.0.2 — data stores.
 // One small class per table. Every query goes through the table's indexes,
 // so the app can point at exactly the data the user means: a wallet by name,
 // a wallet's spending inside one budget cycle, a wallet's spending in one

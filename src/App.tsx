@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — app shell.
+// DompetKu v1.0.2 — app shell.
 // Loads the local store, gates first-run setup, switches tabs, owns the
 // floating navbar. No router: one tab state, static-export friendly.
 // Tab switches run through the View Transitions API when the browser has it

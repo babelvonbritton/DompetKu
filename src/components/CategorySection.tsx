@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — category customization in the chat settings sheet
+// DompetKu v1.0.2 — category customization in the chat settings sheet
 // (gear button in the chat header).
 // Add, rename and delete categories. Deleting moves that category's
 // transactions to Lainnya, so nothing is ever orphaned; Lainnya itself

@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — Google Drive cloud backup.
+// DompetKu v1.0.2 — Google Drive cloud backup.
 // The backup file lives in the app's own Drive folder (appDataFolder), so
 // the app can only see its own backup, never the user's other Drive files.
 // Auth is Google Identity Services (token client, no server). Sign-in is
@@ -125,7 +125,11 @@ export class DriveService {
     fetchFn: typeof fetch = fetch,
   ) {
     this.loadGis = loadGis;
-    this.fetchFn = fetchFn;
+    // Never call fetch as a method of this service: browsers throw
+    // "Illegal invocation" when it runs with a non-Window receiver, so
+    // every Drive call failed at the upload step. Routing it through an
+    // arrow function calls it bare, like a plain fetch() call.
+    this.fetchFn = (...args: Parameters<typeof fetch>) => fetchFn(...args);
   }
 
   private async requestToken(

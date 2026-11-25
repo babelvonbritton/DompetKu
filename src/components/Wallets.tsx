@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — wallet list and editing.
+// DompetKu v1.0.2 — wallet list and editing.
 // Budget, cycle start day and warn percent are set per wallet.
 
 import { useState } from 'react';
@@ -262,12 +262,16 @@ function WalletForm({
             value={form.cycleDay}
             onChange={(e) => setForm({ ...form, cycleDay: e.target.value })}
           >
-            {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
+            {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
               <option key={d} value={String(d)}>
                 {d}
               </option>
             ))}
           </select>
+          <p className="hint">
+            Kalau bulan itu lebih pendek, siklus mulai di tanggal terakhir
+            bulan itu.
+          </p>
         </div>
         <div className="field">
           <label htmlFor={`wf-warn-${saveLabel}`}>Ingatkan saat</label>

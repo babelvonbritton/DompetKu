@@ -1,9 +1,13 @@
-// DompetKu v1.0.0 — Google Drive backup section in Settings.
+// DompetKu v1.0.2 — Google Drive backup section in Settings.
 // Single sign-on: the app ships one shared OAuth client ID
 // (DEFAULT_DRIVE_CLIENT_ID in lib/drive.ts), so users just tap Hubungkan
 // and pick their Google account. A user can still paste their own Client ID;
 // that override wins over the shared one. The backup file lives in the app's
 // own Drive folder, and restore reads it back from there.
+//
+// The section shell (heading + collapse) lives in Settings; this component
+// renders only the section body. Its own status and error render here, next
+// to the buttons — never at the bottom of the page.
 
 import { useState } from 'react';
 import { DEFAULT_DRIVE_CLIENT_ID } from '../lib/drive';
@@ -40,8 +44,6 @@ export function DriveSection({
   onDriveBackup,
   onDriveRestore,
   onInspected,
-  setStatus,
-  setError,
 }: {
   settings: Settings;
   backupPassphrase: string;
@@ -58,8 +60,6 @@ export function DriveSection({
     onProgress?: BackupProgress,
   ) => Promise<InspectResult>;
   onInspected: (result: InspectResult, passphrase: string) => void;
-  setStatus: (text: string) => void;
-  setError: (text: string) => void;
 }) {
   const hasDefault = DEFAULT_DRIVE_CLIENT_ID.trim().length > 0;
   const [clientId, setClientId] = useState(settings.driveClientId ?? '');
@@ -67,6 +67,8 @@ export function DriveSection({
     !hasDefault || settings.driveClientId !== null,
   );
   const [busy, setBusy] = useState(false);
+  const [driveStatus, setDriveStatus] = useState('');
+  const [driveError, setDriveError] = useState('');
   const stepper = useStepper();
 
   const connected = settings.driveAccessToken !== null;
@@ -84,14 +86,14 @@ export function DriveSection({
     try {
       await fn((id) => stepper.advance(id));
       await stepper.finish();
-      setStatus(okText);
-      setError('');
+      setDriveStatus(okText);
+      setDriveError('');
       return true;
     } catch (e) {
       const err = e instanceof Error ? e : new Error('Operasi Drive gagal.');
       stepper.fail(err);
-      setError(err.message);
-      setStatus('');
+      setDriveError(err.message);
+      setDriveStatus('');
       return false;
     } finally {
       setBusy(false);
@@ -102,11 +104,11 @@ export function DriveSection({
     setBusy(true);
     try {
       await action();
-      setStatus(okText);
-      setError('');
+      setDriveStatus(okText);
+      setDriveError('');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Operasi Drive gagal.');
-      setStatus('');
+      setDriveError(e instanceof Error ? e.message : 'Operasi Drive gagal.');
+      setDriveStatus('');
     } finally {
       setBusy(false);
     }
@@ -115,8 +117,8 @@ export function DriveSection({
   async function connect(): Promise<void> {
     const id = clientId.trim() || DEFAULT_DRIVE_CLIENT_ID.trim();
     if (!id) {
-      setError('Tempel Client ID Google dulu.');
-      setStatus('');
+      setDriveError('Tempel Client ID Google dulu.');
+      setDriveStatus('');
       return;
     }
     await run(async () => {
@@ -130,8 +132,8 @@ export function DriveSection({
       backupPassphraseConfirm,
     );
     if (err) {
-      setError(err);
-      setStatus('');
+      setDriveError(err);
+      setDriveStatus('');
       return;
     }
     await runFlow(
@@ -143,8 +145,8 @@ export function DriveSection({
 
   async function restore(): Promise<void> {
     if (!backupPassphrase) {
-      setError('Isi kata sandi cadangan dulu.');
-      setStatus('');
+      setDriveError('Isi kata sandi cadangan dulu.');
+      setDriveStatus('');
       return;
     }
     let result: InspectResult | null = null;
@@ -165,8 +167,7 @@ export function DriveSection({
   }
 
   return (
-    <section className="settings-section" aria-labelledby="drive-heading">
-      <h2 id="drive-heading">Google Drive</h2>
+    <>
       <p>
         Status:{' '}
         <strong>{connected ? 'Terhubung' : 'Belum terhubung'}</strong>
@@ -248,6 +249,16 @@ export function DriveSection({
           </button>
         ) : null}
       </div>
+      {driveStatus ? (
+        <p className="form-status" role="status">
+          {driveStatus}
+        </p>
+      ) : null}
+      {driveError ? (
+        <p className="form-error" role="alert">
+          {driveError}
+        </p>
+      ) : null}
       {hasDefault ? (
         <div className="drive-actions">
           {showOwnId ? (
@@ -335,9 +346,11 @@ export function DriveSection({
         perangkat ini dan tidak pernah ikut dicadangkan. Cadangkan dan Pulihkan
         memakai kata sandi dari bagian Cadangkan &amp; pulihkan di atas
         (minimal 8 karakter, huruf dan angka). Tanpa kata sandi itu, file di
-        Drive tidak bisa dibuka.
+        Drive tidak bisa dibuka. File cadangannya tersimpan di folder aplikasi
+        Drive yang tersembunyi, jadi tidak tampil di drive.google.com —
+        tanggal cadangan terakhir di atas adalah bukti cadangannya tersimpan.
       </p>
       {stepper.steps ? <Stepper steps={stepper.steps} /> : null}
-    </section>
+    </>
   );
 }

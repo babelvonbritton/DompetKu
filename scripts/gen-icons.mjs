@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — generate PWA icons (dependency-free PNG encoder).
+// DompetKu v1.0.2 — generate PWA icons (dependency-free PNG encoder).
 // Green rounded square, pearl coin with a brass center. Run: npm run gen-icons
 import { deflateSync } from 'node:zlib';
 import { mkdirSync, writeFileSync } from 'node:fs';

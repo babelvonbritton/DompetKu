@@ -1,9 +1,9 @@
-// DompetKu v1.0.0 — settings tab.
+// DompetKu v1.0.2 — settings tab.
 // Gemini BYOK key + in-app guide, launch tab, encrypted backup (file and
 // Google Drive), privacy. Categories and chat history live in the chat
 // settings sheet (gear button in the chat header), not here.
 
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { DEFAULT_MODEL } from '../lib/db';
 import { validatePassphrase } from '../lib/backup';
 import { APP_VERSION } from '../lib/version';
@@ -41,6 +41,48 @@ const APPLY_STEPS: StepDef[] = [
   { id: 'verify', label: 'Memverifikasi hasil' },
   { id: 'refresh', label: 'Memuat ulang' },
 ];
+
+/**
+ * One collapsible Settings section. The heading is the toggle; the body
+ * stays mounted when collapsed (hidden), so a stepper or form state inside
+ * never resets when the user folds a section away. All sections start
+ * folded, so the page reads as a short list of headings.
+ */
+function Section({
+  id,
+  title,
+  open,
+  onToggle,
+  children,
+}: {
+  id: string;
+  title: string;
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <section className="settings-section" aria-labelledby={`${id}-heading`}>
+      <h2 id={`${id}-heading`} className="settings-section-head">
+        <button
+          type="button"
+          className="settings-section-toggle"
+          aria-expanded={open}
+          aria-controls={`${id}-body`}
+          onClick={onToggle}
+        >
+          <span>{title}</span>
+          <span className="settings-section-chevron" aria-hidden="true">
+            {open ? '▾' : '▸'}
+          </span>
+        </button>
+      </h2>
+      <div id={`${id}-body`} className="settings-section-body" hidden={!open}>
+        {children}
+      </div>
+    </section>
+  );
+}
 
 export function Settings({
   settings,
@@ -90,6 +132,13 @@ export function Settings({
   const [importPass, setImportPass] = useState('');
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
+  const [keyStatus, setKeyStatus] = useState('');
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(
+    {},
+  );
+  const toggleSection = (id: string) =>
+    setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
+  const isOpen = (id: string) => openSections[id] ?? false;
   const [busy, setBusy] = useState(false);
   const [pendingRestore, setPendingRestore] = useState<{
     pending: PendingRestore;
@@ -129,12 +178,11 @@ export function Settings({
       geminiModel: model.trim() || DEFAULT_MODEL,
       keyReminderDismissedAt: null,
     });
-    setStatus(
+    setKeyStatus(
       key
         ? 'Kunci API tersimpan di perangkat ini.'
         : 'Kunci API dihapus. DompetKu tetap bekerja dengan aturan lokal.',
     );
-    setError('');
   }
 
   async function doExport(): Promise<void> {
@@ -203,8 +251,12 @@ export function Settings({
         <h1>Pengaturan</h1>
       </header>
 
-      <section className="settings-section" aria-labelledby="key-heading">
-        <h2 id="key-heading">Kunci API Gemini</h2>
+      <Section
+        id="key"
+        title="Kunci API Gemini"
+        open={isOpen('key')}
+        onToggle={() => toggleSection('key')}
+      >
         <p>
           Status:{' '}
           <strong>
@@ -245,6 +297,11 @@ export function Settings({
         <button type="button" className="button-primary small" onClick={() => void saveKey()}>
           Simpan kunci
         </button>
+        {keyStatus ? (
+          <p className="form-status" role="status">
+            {keyStatus}
+          </p>
+        ) : null}
         <div className="field">
           <label className="setting-row">
             <span className="setting-row-text">
@@ -303,10 +360,14 @@ export function Settings({
           Kunci yang tidak dibatasi bisa dipakai siapa saja dari mana saja;
           dibatasi, kunci itu hanya berguna dari situs ini.
         </p>
-      </section>
+      </Section>
 
-      <section className="settings-section" aria-labelledby="launch-heading">
-        <h2 id="launch-heading">Tampilan awal</h2>
+      <Section
+        id="launch"
+        title="Tampilan awal"
+        open={isOpen('launch')}
+        onToggle={() => toggleSection('launch')}
+      >
         <p>Pilih tab yang terbuka saat aplikasi diluncurkan.</p>
         <div className="radio-row" role="radiogroup" aria-label="Tampilan awal">
           {(
@@ -329,10 +390,14 @@ export function Settings({
             </label>
           ))}
         </div>
-      </section>
+      </Section>
 
-      <section className="settings-section" aria-labelledby="backup-heading">
-        <h2 id="backup-heading">Cadangkan &amp; pulihkan</h2>
+      <Section
+        id="backup"
+        title="Cadangkan & pulihkan"
+        open={isOpen('backup')}
+        onToggle={() => toggleSection('backup')}
+      >
         <p>
           Cadangan berupa arsip ZIP berisi data dalam format NDJSON, tiap
           file dienkripsi dengan kata sandi dan dilengkapi checksum — jadi
@@ -412,21 +477,36 @@ export function Settings({
           </p>
         </div>
         {stepper.steps ? <Stepper steps={stepper.steps} /> : null}
-      </section>
+        {status ? (
+          <p className="form-status" role="status">
+            {status}
+          </p>
+        ) : null}
+        {error ? (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </Section>
 
-      <DriveSection
-        settings={settings}
-        backupPassphrase={exportPass}
-        backupPassphraseConfirm={exportPassConfirm}
-        onSaveSettings={onSaveSettings}
-        onDriveConnect={onDriveConnect}
-        onDriveDisconnect={onDriveDisconnect}
-        onDriveBackup={onDriveBackup}
-        onDriveRestore={onDriveRestore}
-        onInspected={onInspected}
-        setStatus={setStatus}
-        setError={setError}
-      />
+      <Section
+        id="drive"
+        title="Google Drive"
+        open={isOpen('drive')}
+        onToggle={() => toggleSection('drive')}
+      >
+        <DriveSection
+          settings={settings}
+          backupPassphrase={exportPass}
+          backupPassphraseConfirm={exportPassConfirm}
+          onSaveSettings={onSaveSettings}
+          onDriveConnect={onDriveConnect}
+          onDriveDisconnect={onDriveDisconnect}
+          onDriveBackup={onDriveBackup}
+          onDriveRestore={onDriveRestore}
+          onInspected={onInspected}
+        />
+      </Section>
 
       {pendingRestore ? (
         <RestoreReview
@@ -440,8 +520,12 @@ export function Settings({
         />
       ) : null}
 
-      <section className="settings-section" aria-labelledby="privacy-heading">
-        <h2 id="privacy-heading">Privasi</h2>
+      <Section
+        id="privacy"
+        title="Privasi"
+        open={isOpen('privacy')}
+        onToggle={() => toggleSection('privacy')}
+      >
         <p>
           DompetKu tidak punya server. Data tersimpan di perangkat ini; kalau
           kunci API Gemini terpasang, pesan chat dikirim ke Google untuk
@@ -450,10 +534,14 @@ export function Settings({
         <button type="button" className="button-ghost small" onClick={onOpenPrivacy}>
           Baca kebijakan privasi
         </button>
-      </section>
+      </Section>
 
-      <section className="settings-section" aria-labelledby="about-heading">
-        <h2 id="about-heading">Tentang</h2>
+      <Section
+        id="about"
+        title="Tentang"
+        open={isOpen('about')}
+        onToggle={() => toggleSection('about')}
+      >
         <p>
           DompetKu {APP_VERSION} — pelacak anggaran lewat chat. Dibuat untuk
           dipakai sendiri, tanpa akun.
@@ -461,18 +549,7 @@ export function Settings({
         <p className="copyright">
           © {new Date().getFullYear()} Alzam A. Hak cipta dilindungi.
         </p>
-      </section>
-
-      {status ? (
-        <p className="form-status" role="status">
-          {status}
-        </p>
-      ) : null}
-      {error ? (
-        <p className="form-error" role="alert">
-          {error}
-        </p>
-      ) : null}
+      </Section>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — step-by-step progress for backup and restore,
+// DompetKu v1.0.2 — step-by-step progress for backup and restore,
 // after Repo/Olaseena's Stepper. Each step stays visible at least 260 ms
 // so the progress is readable, the first failure stops the run and is
 // shown on the step where it happened, and the dialog cannot be closed

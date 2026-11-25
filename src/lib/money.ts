@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — money parsing, formatting and budget-cycle math.
+// DompetKu v1.0.2 — money parsing, formatting and budget-cycle math.
 // All amounts are IDR integers. Indonesian shorthands: rb/ribu/k = thousand,
 // jt/juta = million. Decimal comma ("1,5jt") and thousand dots ("50.000").
 
@@ -58,6 +58,12 @@ export function formatSignedIDR(amount: number): string {
   return `+${formatIDR(amount)}`;
 }
 
+/**
+ * Days in a month, Gregorian calendar. The Date constructor follows the
+ * proleptic Gregorian rules: February has 29 days in a leap year (divisible
+ * by 4, except centuries unless divisible by 400 — so 2028 has 29, 2100
+ * has 28), April, June, September and November have 30, the rest 31.
+ */
 function daysInMonth(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate();
 }

@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — encrypted backup round-trip tests.
+// DompetKu v1.0.2 — encrypted backup round-trip tests.
 // Format 3: ZIP holding a plaintext manifest.json plus one file per table,
 // each encrypted with its own IV under one PBKDF2 key (310,000
 // iterations). The manifest carries per-store counts and SHA-256

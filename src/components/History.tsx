@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — history tab.
+// DompetKu v1.0.2 — history tab.
 // Grouped by day, filterable by wallet, deletable with a two-tap confirm.
 
 import { useState } from 'react';

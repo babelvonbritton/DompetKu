@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — quick first-run setup.
+// DompetKu v1.0.2 — quick first-run setup.
 // One wallet + budget first; the API key comes later (the chat reminds).
 
 import { useState } from 'react';
@@ -97,13 +97,16 @@ export function Setup({
               value={cycleDay}
               onChange={(e) => setCycleDay(e.target.value)}
             >
-              {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
+              {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                 <option key={d} value={String(d)}>
                   {d}
                 </option>
               ))}
             </select>
-            <p className="hint">Sesuaikan dengan tanggal gajianmu.</p>
+            <p className="hint">
+              Sesuaikan dengan tanggal gajianmu. Kalau bulan itu lebih
+              pendek, siklus mulai di tanggal terakhir bulan itu.
+            </p>
           </div>
           <div className="field">
             <label htmlFor="setup-warn">Ingatkan saat</label>

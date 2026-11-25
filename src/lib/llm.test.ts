@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — Gemini client error mapping tests.
+// DompetKu v1.0.2 — Gemini client error mapping tests.
 // The HTTP status is what tells the user what to fix (404 = the key cannot
 // reach this model, 400 = bad key, 403 = API not enabled), so it must
 // survive the client instead of collapsing to null.

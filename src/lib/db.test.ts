@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — settings seed + legacy model migration tests.
+// DompetKu v1.0.2 — settings seed + legacy model migration tests.
 // Google limits the 2.5 models to keys that already used them, so a stored
 // 2.5 model breaks every Gemini call for a fresh key. Booting must move it.
 

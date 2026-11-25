@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — money parsing, formatting and budget-cycle tests.
+// DompetKu v1.0.2 — money parsing, formatting and budget-cycle tests.
 import { describe, expect, it } from 'vitest';
 import {
   budgetStatus,
@@ -59,6 +59,33 @@ describe('cycleRange', () => {
     const { start, end } = cycleRange(new Date(2026, 1, 15), 31);
     expect(start).toEqual(new Date(2026, 0, 31));
     expect(end).toEqual(new Date(2026, 1, 28));
+  });
+
+  it('keeps Feb 29 for a 31st cycle in a leap year', () => {
+    // 2028 is a leap year (divisible by 4, not a century).
+    const { start, end } = cycleRange(new Date(2028, 1, 15), 31);
+    expect(start).toEqual(new Date(2028, 0, 31));
+    expect(end).toEqual(new Date(2028, 1, 29));
+  });
+
+  it('clamps a 29th cycle to Feb 28 outside leap years', () => {
+    const nonLeap = cycleRange(new Date(2026, 1, 15), 29);
+    expect(nonLeap.end).toEqual(new Date(2026, 1, 28));
+    const leap = cycleRange(new Date(2028, 1, 15), 29);
+    expect(leap.end).toEqual(new Date(2028, 1, 29));
+  });
+
+  it('clamps a 31st cycle to the 30th in 30-day months', () => {
+    const { start, end } = cycleRange(new Date(2026, 3, 15), 31);
+    expect(start).toEqual(new Date(2026, 2, 31));
+    expect(end).toEqual(new Date(2026, 3, 30));
+  });
+
+  it('treats 2100 as a non-leap century year', () => {
+    // 2100 is divisible by 100 but not by 400, so February has 28 days.
+    const { start, end } = cycleRange(new Date(2100, 1, 15), 31);
+    expect(start).toEqual(new Date(2100, 0, 31));
+    expect(end).toEqual(new Date(2100, 1, 28));
   });
 });
 

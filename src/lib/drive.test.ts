@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — Drive service tests (stubbed GIS + mocked fetch).
+// DompetKu v1.0.2 — Drive service tests (stubbed GIS + mocked fetch).
 // No real Google account is touched.
 
 import { describe, expect, it, vi } from 'vitest';
@@ -145,5 +145,35 @@ describe('DriveService', () => {
     await expect(service.listBackups('expired')).rejects.toBeInstanceOf(
       DriveAuthError,
     );
+  });
+
+  it('calls fetch bare, not as a method of the service', async () => {
+    // Browsers reject fetch when it runs with a non-Window receiver
+    // ("Illegal invocation"). A mock that enforces that rule catches the
+    // bug: before the fix, uploadBackup threw before any request left.
+    const strictFetch = function (
+      this: unknown,
+      _input: RequestInfo | URL,
+      _init?: RequestInit,
+    ): Promise<Response> {
+      if (this !== undefined && this !== globalThis) {
+        throw new TypeError(
+          "Failed to execute 'fetch' on 'Window': Illegal invocation",
+        );
+      }
+      return Promise.resolve(
+        jsonResponse({ id: 'f2', modifiedTime: '2026-11-25T01:00:00Z' }),
+      );
+    };
+    const service = new DriveService(
+      () => Promise.resolve(stubGis()),
+      strictFetch as unknown as typeof fetch,
+    );
+    const result = await service.uploadBackup(
+      'tok-123',
+      new Uint8Array([1, 2, 3]),
+      null,
+    );
+    expect(result.id).toBe('f2');
   });
 });

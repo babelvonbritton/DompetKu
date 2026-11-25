@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — chat engine tests.
+// DompetKu v1.0.2 — chat engine tests.
 // The wallet question: with more than one wallet the engine asks first
 // and only writes once the user names a wallet.
 

@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — local rules parser tests.
+// DompetKu v1.0.2 — local rules parser tests.
 import { describe, expect, it } from 'vitest';
 import { parseUserMessage, type ParserContext } from './parser';
 import { STARTER_CATEGORIES } from './categories';

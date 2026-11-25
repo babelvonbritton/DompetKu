@@ -1474,6 +1474,36 @@ button.wallet-card {
   color: var(--ink);
 }
 
+.settings-section-head {
+  margin: 0 0 0.4rem;
+}
+
+.settings-section-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings-section-chevron {
+  flex: none;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.settings-section-body[hidden] {
+  display: none;
+}
+
 .settings-section h3 {
   margin: 0.9rem 0 0.3rem;
   font-size: 0.92rem;

@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — passphrase-encrypted backup (WebCrypto AES-GCM).
+// DompetKu v1.0.2 — passphrase-encrypted backup (WebCrypto AES-GCM).
 //
 // Format 3 (current, after Repo/Olaseena): a ZIP holding a plaintext
 // manifest.json plus one file per table, each encrypted with its own IV

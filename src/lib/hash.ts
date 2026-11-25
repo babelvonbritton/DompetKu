@@ -1,4 +1,4 @@
-// DompetKu v1.0.0 — SHA-256 helpers (WebCrypto).
+// DompetKu v1.0.2 — SHA-256 helpers (WebCrypto).
 // Used for backup checksums (manifest) and for fingerprinting the current
 // data before a restore, so a restore can tell whether the data changed
 // while the user was reviewing the backup.
