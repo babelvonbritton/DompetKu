@@ -356,8 +356,10 @@ export function Settings({
           <li>
             Batasi kunci itu: di Google Cloud Console → Credentials → klik
             kunci ini, lalu atur API restrictions ke Generative Language
-            API saja, dan Application restrictions ke HTTP referrers dengan
-            alamat situs DompetKu (diisi setelah aplikasi dipublikasikan).
+            API saja. Jangan atur Application restrictions: pembatasan
+            alamat situs bisa membuat kunci ditolak Gemini, dan pembatasan
+            IP tidak cocok karena kunci dipakai dari perangkat masing-masing
+            pengguna.
           </li>
           <li>Tempel di kolom di atas, lalu simpan.</li>
         </ol>
@@ -365,8 +367,11 @@ export function Settings({
           Tidak perlu kartu kredit. Kunci hanya tersimpan di perangkat ini,
           dan kalau kunci terpasang, pesanmu dikirim ke Google untuk dipahami
           Gemini — paling banyak satu balasan terakhir sebagai konteks.
-          Kunci yang tidak dibatasi bisa dipakai siapa saja dari mana saja;
-          dibatasi, kunci itu hanya berguna dari situs ini.
+          Kunci yang tidak dibatasi bisa dipakai siapa saja untuk API apa
+          saja; dibatasi ke Generative Language API saja, kunci itu hanya
+          bisa dipakai untuk Gemini. Supaya lebih aman, pakai proyek tanpa
+          penagihan — kalau kunci bocor pun, kunci itu hanya bisa memakai
+          kuota gratis dan tidak bisa menimbulkan tagihan.
         </p>
       </Section>
 

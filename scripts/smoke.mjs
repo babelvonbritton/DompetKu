@@ -1,4 +1,4 @@
-// DompetKu v1.0.4 — real-browser smoke test (Playwright).
+// DompetKu v1.0.5 — real-browser smoke test (Playwright).
 // Run: SMOKE_URL=http://localhost:4173/ node scripts/smoke.mjs
 // Uses the Playwright install from the Brewfolio tree (NODE_PATH).
 import { chromium } from '/home/hatch/workspace/brewfolio-v110/node_modules/playwright/index.mjs';
@@ -249,6 +249,18 @@ try {
     'API key guide link present',
     await page.getByRole('link', { name: 'aistudio.google.com/apikey' }).isVisible(),
   );
+  // v1.0.5: the guide must not tell users to set HTTP referrers — a
+  // referrer-restricted Gemini key can be rejected, and IP restrictions
+  // do not fit a key used from each user's own device. It must say to
+  // restrict by API only and to leave Application restrictions unset.
+  const guideText = (await page.locator('#key-body').innerText());
+  check(
+    'key guide says API restriction only, no application restriction',
+    guideText.includes('Jangan atur Application restrictions') &&
+      guideText.includes('Generative Language API saja') &&
+      !guideText.includes('HTTP referrers'),
+    guideText.slice(0, 120).replace(/\n/g, ' | '),
+  );
   // v0.2.8: the parser fallback toggle is locked on without a key.
   check(
     'parser fallback toggle is locked on without a key',
@@ -498,8 +510,8 @@ try {
   await page.getByRole('button', { name: 'Pengaturan', exact: true }).click();
   await expandSection(page, 'Tentang');
   check(
-    'About shows DompetKu 1.0.4',
-    await page.getByText('DompetKu 1.0.4').isVisible(),
+    'About shows DompetKu 1.0.5',
+    await page.getByText('DompetKu 1.0.5').isVisible(),
   );
   check(
     'About shows the copyright',
