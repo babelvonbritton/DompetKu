@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — privacy policy page, in plain Indonesian.
+// DompetKu v1.0.3 — privacy policy page, in plain Indonesian.
 
 export function Privacy({ onBack }: { onBack: () => void }) {
   return (

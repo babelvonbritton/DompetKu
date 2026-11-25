@@ -1,10 +1,10 @@
-# DompetKu 1.0.2
+# DompetKu v1
 
 Pelacak anggaran lewat chat. Mobile-first PWA, bahasa Indonesia penuh.
 Semua data tersimpan di perangkat (IndexedDB) — tidak ada akun, tidak ada
 server.
 
-## v1.0.2
+## v1
 
 - **Setup cepat**: satu dompet + anggaran bulanan dulu, API key nanti.
 - **Beranda (dashboard)**: sisa bulan ini, keluar hari ini, strip

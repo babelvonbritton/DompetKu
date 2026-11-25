@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — local rules parser for Indonesian chat input.
+// DompetKu v1.0.3 — local rules parser for Indonesian chat input.
 // Understands amounts ("45rb", "Rp50.000", "1,5jt"), wallets, categories,
 // dates ("hari ini", "kemarin") and the common questions. Anything it cannot
 // parse confidently goes to the LLM (when a key is set) or to guided help.

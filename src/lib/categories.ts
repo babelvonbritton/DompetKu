@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — starter categories and keyword inference for the
+// DompetKu v1.0.3 — starter categories and keyword inference for the
 // local rules parser. Category names are native Indonesian, known terms.
 
 import type { Category } from './types';

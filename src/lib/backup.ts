@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — passphrase-encrypted backup (WebCrypto AES-GCM).
+// DompetKu v1.0.3 — passphrase-encrypted backup (WebCrypto AES-GCM).
 //
 // Format 3 (current, after Repo/Olaseena): a ZIP holding a plaintext
 // manifest.json plus one file per table, each encrypted with its own IV
@@ -252,6 +252,20 @@ function tableDiff<T extends { id: string }>(
 
 /** Compare the current data with a backup: identical, the counts on both
  * sides, and a short list of what differs, in plain Indonesian. */
+/**
+ * Settings minus the volatile Drive metadata. driveLastBackupAt changes on
+ * every Drive backup and driveTokenExpiresAt on every token refresh, and
+ * neither is a setting the user chose — counting them would make every
+ * restore after a Drive backup or a refresh report "Pengaturan berbeda"
+ * even when nothing the user set has changed.
+ */
+function comparableSettings(settings: BackupPayload['settings']) {
+  const { driveLastBackupAt, driveTokenExpiresAt, ...rest } = settings;
+  void driveLastBackupAt;
+  void driveTokenExpiresAt;
+  return rest;
+}
+
 export function diffBackup(
   current: BackupPayload,
   backup: BackupPayload,
@@ -261,7 +275,8 @@ export function diffBackup(
   tableDiff('pengeluaran', current.transactions, backup.transactions, changes);
   tableDiff('kategori', current.categories, backup.categories, changes);
   if (
-    JSON.stringify(current.settings) !== JSON.stringify(backup.settings)
+    JSON.stringify(comparableSettings(current.settings)) !==
+    JSON.stringify(comparableSettings(backup.settings))
   ) {
     changes.push('Pengaturan berbeda');
   }

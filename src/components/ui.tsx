@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — small shared UI pieces.
+// DompetKu v1.0.3 — small shared UI pieces.
 // General, functional comments only. Porto green theme, solid colors.
 
 import type { ReactNode } from 'react';

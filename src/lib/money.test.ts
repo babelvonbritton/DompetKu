@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — money parsing, formatting and budget-cycle tests.
+// DompetKu v1.0.3 — money parsing, formatting and budget-cycle tests.
 import { describe, expect, it } from 'vitest';
 import {
   budgetStatus,

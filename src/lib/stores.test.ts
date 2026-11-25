@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — store tests (Dexie v2 indexes, fake IndexedDB).
+// DompetKu v1.0.3 — store tests (Dexie v2 indexes, fake IndexedDB).
 // Proves the indexed queries the engine relies on: wallet by name,
 // spending in a date range, spending in one category.
 

@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — floating pill navbar.
+// DompetKu v1.0.3 — floating pill navbar.
 // Chat is the raised center button; Settings sits next to History.
 
 import type { ReactElement } from 'react';

@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — Google Drive backup section in Settings.
+// DompetKu v1.0.3 — Google Drive backup section in Settings.
 // Single sign-on: the app ships one shared OAuth client ID
 // (DEFAULT_DRIVE_CLIENT_ID in lib/drive.ts), so users just tap Hubungkan
 // and pick their Google account. A user can still paste their own Client ID;
@@ -23,8 +23,11 @@ const DRIVE_BACKUP_STEPS: StepDef[] = [
   { id: 'upload', label: 'Mengunggah ke Drive' },
 ];
 
-const DRIVE_RESTORE_STEPS: StepDef[] = [
+const DRIVE_FETCH_STEPS: StepDef[] = [
   { id: 'download', label: 'Mengunduh dari Drive' },
+];
+
+const DRIVE_DECRYPT_STEPS: StepDef[] = [
   { id: 'read', label: 'Membaca file' },
   { id: 'unpack', label: 'Membuka arsip' },
   { id: 'metadata', label: 'Memeriksa keterangan' },
@@ -36,18 +39,15 @@ const DRIVE_RESTORE_STEPS: StepDef[] = [
 
 export function DriveSection({
   settings,
-  backupPassphrase,
-  backupPassphraseConfirm,
   onSaveSettings,
   onDriveConnect,
   onDriveDisconnect,
   onDriveBackup,
-  onDriveRestore,
+  onDriveFetch,
+  onDriveDecrypt,
   onInspected,
 }: {
   settings: Settings;
-  backupPassphrase: string;
-  backupPassphraseConfirm: string;
   onSaveSettings: (patch: Partial<Settings>) => Promise<void>;
   onDriveConnect: (clientId: string) => Promise<void>;
   onDriveDisconnect: () => Promise<void>;
@@ -55,7 +55,9 @@ export function DriveSection({
     passphrase: string,
     onProgress?: BackupProgress,
   ) => Promise<void>;
-  onDriveRestore: (
+  onDriveFetch: (onProgress?: BackupProgress) => Promise<Uint8Array>;
+  onDriveDecrypt: (
+    bytes: Uint8Array,
     passphrase: string,
     onProgress?: BackupProgress,
   ) => Promise<InspectResult>;
@@ -67,8 +69,22 @@ export function DriveSection({
     !hasDefault || settings.driveClientId !== null,
   );
   const [busy, setBusy] = useState(false);
+  // The Drive backup has its own passphrase fields, next to its buttons.
+  // It used to borrow the file-export fields from the backup section, so
+  // the "Kata sandi minimal 8 karakter." error pointed at fields in
+  // another (folded) section with nothing to fill nearby. Same backup
+  // passphrase concept — one password opens every backup — but entered
+  // where the action is.
+  const [drivePass, setDrivePass] = useState('');
+  const [drivePassConfirm, setDrivePassConfirm] = useState('');
   const [driveStatus, setDriveStatus] = useState('');
   const [driveError, setDriveError] = useState('');
+  // Bytes fetched by phase 1 of a restore, held until the passphrase is
+  // entered and phase 2 decrypts them. Cleared once phase 2 runs, so a
+  // later restore always fetches fresh from Drive.
+  const [heldDriveBackup, setHeldDriveBackup] = useState<Uint8Array | null>(
+    null,
+  );
   const stepper = useStepper();
 
   const connected = settings.driveAccessToken !== null;
@@ -127,37 +143,69 @@ export function DriveSection({
   }
 
   async function backup(): Promise<void> {
-    const err = validatePassphrase(
-      backupPassphrase,
-      backupPassphraseConfirm,
-    );
+    const err = validatePassphrase(drivePass, drivePassConfirm);
     if (err) {
       setDriveError(err);
       setDriveStatus('');
       return;
     }
-    await runFlow(
+    const ok = await runFlow(
       DRIVE_BACKUP_STEPS,
-      (advance) => onDriveBackup(backupPassphrase, advance),
+      (advance) => onDriveBackup(drivePass, advance),
       'Cadangan tersimpan di Google Drive.',
     );
+    // The Drive contents just changed, so a held restore is stale.
+    if (ok) setHeldDriveBackup(null);
   }
 
+  /**
+   * Restore in two phases, on purpose: phase 1 fetches the backup from
+   * Drive and holds it; the passphrase is only asked for afterwards, and
+   * phase 2 decrypts it. When the passphrase is already filled, one tap
+   * runs both phases. The backup and the restore share this section's own
+   * passphrase field — the same password, entered where the buttons are.
+   */
   async function restore(): Promise<void> {
-    if (!backupPassphrase) {
+    if (!heldDriveBackup) {
+      let bytes: Uint8Array | null = null;
+      const ok = await runFlow(
+        DRIVE_FETCH_STEPS,
+        async (advance) => {
+          bytes = await onDriveFetch(advance);
+        },
+        'Cadangan dari Drive diunduh.',
+      );
+      if (!ok || !bytes) return;
+      setHeldDriveBackup(bytes);
+      if (!drivePass) {
+        setDriveStatus(
+          'Cadangan dari Drive ditemukan. Isi kata sandi di atas, lalu tekan Pulihkan dari Drive lagi.',
+        );
+        setDriveError('');
+        return;
+      }
+      await decryptHeld(bytes);
+      return;
+    }
+    await decryptHeld(heldDriveBackup);
+  }
+
+  async function decryptHeld(bytes: Uint8Array): Promise<void> {
+    if (!drivePass) {
       setDriveError('Isi kata sandi cadangan dulu.');
       setDriveStatus('');
       return;
     }
     let result: InspectResult | null = null;
     const ok = await runFlow(
-      DRIVE_RESTORE_STEPS,
+      DRIVE_DECRYPT_STEPS,
       async (advance) => {
-        result = await onDriveRestore(backupPassphrase, advance);
+        result = await onDriveDecrypt(bytes, drivePass, advance);
       },
       'Cadangan dari Drive diperiksa.',
     );
-    if (ok && result) onInspected(result, backupPassphrase);
+    setHeldDriveBackup(null);
+    if (ok && result) onInspected(result, drivePass);
   }
 
   async function clearOverride(): Promise<void> {
@@ -209,6 +257,36 @@ export function DriveSection({
           />
         </div>
       ) : null}
+      <div className="field">
+        <label htmlFor="drive-pass">Kata sandi cadangan</label>
+        <input
+          id="drive-pass"
+          type="password"
+          value={drivePass}
+          onChange={(e) => setDrivePass(e.target.value)}
+          placeholder="Minimal 8 karakter, huruf dan angka"
+          autoComplete="new-password"
+          aria-describedby="drive-pass-hint"
+        />
+      </div>
+      <div className="field">
+        <label htmlFor="drive-pass-confirm">
+          Konfirmasi kata sandi cadangan
+        </label>
+        <input
+          id="drive-pass-confirm"
+          type="password"
+          value={drivePassConfirm}
+          onChange={(e) => setDrivePassConfirm(e.target.value)}
+          placeholder="Tulis lagi kata sandinya"
+          autoComplete="new-password"
+          aria-describedby="drive-pass-hint"
+        />
+        <p className="hint" id="drive-pass-hint">
+          Kata sandi yang sama dengan cadangan file, supaya satu kata sandi
+          membuka semua cadanganmu.
+        </p>
+      </div>
       <div className="drive-actions">
         {connected ? null : (
           <button
@@ -343,12 +421,11 @@ export function DriveSection({
       )}
       <p className="hint">
         Client ID bukan rahasia, tapi token aksesnya hanya tersimpan di
-        perangkat ini dan tidak pernah ikut dicadangkan. Cadangkan dan Pulihkan
-        memakai kata sandi dari bagian Cadangkan &amp; pulihkan di atas
-        (minimal 8 karakter, huruf dan angka). Tanpa kata sandi itu, file di
-        Drive tidak bisa dibuka. File cadangannya tersimpan di folder aplikasi
-        Drive yang tersembunyi, jadi tidak tampil di drive.google.com —
-        tanggal cadangan terakhir di atas adalah bukti cadangannya tersimpan.
+        perangkat ini dan tidak pernah ikut dicadangkan. Tanpa kata sandi di
+        atas, file di Drive tidak bisa dibuka. File cadangannya tersimpan di
+        folder aplikasi Drive yang tersembunyi, jadi tidak tampil di
+        drive.google.com — tanggal cadangan terakhir di atas adalah bukti
+        cadangannya tersimpan.
       </p>
       {stepper.steps ? <Stepper steps={stepper.steps} /> : null}
     </>

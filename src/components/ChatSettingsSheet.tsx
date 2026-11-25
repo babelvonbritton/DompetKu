@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — chat settings sheet.
+// DompetKu v1.0.3 — chat settings sheet.
 // A native <dialog> bottom sheet opened from the gear button in the chat
 // header. Everything chat-related lives here, not in the Settings tab:
 // category customization and clearing the chat history.

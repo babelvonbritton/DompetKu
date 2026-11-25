@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — money parsing, formatting and budget-cycle math.
+// DompetKu v1.0.3 — money parsing, formatting and budget-cycle math.
 // All amounts are IDR integers. Indonesian shorthands: rb/ribu/k = thousand,
 // jt/juta = million. Decimal comma ("1,5jt") and thousand dots ("50.000").
 

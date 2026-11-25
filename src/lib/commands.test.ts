@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — slash-command catalog tests.
+// DompetKu v1.0.3 — slash-command catalog tests.
 // The catalog is the single source of truth for the suggestion menu and
 // /bantuan, so these tests also prove every listed command is one the
 // parser actually handles.

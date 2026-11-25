@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — Gemini BYOK client.
+// DompetKu v1.0.3 — Gemini BYOK client.
 // Called ONLY when the local rules parser is unsure AND the user set an API
 // key. The model only returns JSON matching the parser's intents, and every
 // result is validated client-side before the app acts on it.

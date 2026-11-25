@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — encrypted backup round-trip tests.
+// DompetKu v1.0.3 — encrypted backup round-trip tests.
 // Format 3: ZIP holding a plaintext manifest.json plus one file per table,
 // each encrypted with its own IV under one PBKDF2 key (310,000
 // iterations). The manifest carries per-store counts and SHA-256
@@ -331,5 +331,25 @@ describe('diffBackup', () => {
     expect(diff.changes).toContain('1 pengeluaran baru di cadangan');
     expect(diff.changes).toContain('1 dompet berbeda');
     expect(diff.counts.backup.transactions).toBe(2);
+  });
+
+  it('ignores volatile Drive metadata in settings', () => {
+    // A Drive backup updates driveLastBackupAt and a token refresh updates
+    // driveTokenExpiresAt — neither is a setting the user changed, so a
+    // restore after either must still find the data up to date.
+    const other = JSON.parse(JSON.stringify(sample)) as BackupPayload;
+    other.settings.driveLastBackupAt = 1_765_000_000_000;
+    other.settings.driveTokenExpiresAt = 1_765_000_100_000;
+    const diff = diffBackup(sample, other);
+    expect(diff.identical).toBe(true);
+    expect(diff.changes).toEqual([]);
+  });
+
+  it('still reports a real settings change', () => {
+    const other = JSON.parse(JSON.stringify(sample)) as BackupPayload;
+    other.settings.launchTab = 'chat';
+    const diff = diffBackup(sample, other);
+    expect(diff.identical).toBe(false);
+    expect(diff.changes).toContain('Pengaturan berbeda');
   });
 });

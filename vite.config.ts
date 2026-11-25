@@ -2,7 +2,7 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vite';
 
-// DompetKu v1.0.2 — static export, GitHub Pages. No server, no backend.
+// DompetKu v1.0.3 — static export, GitHub Pages. No server, no backend.
 export default defineConfig({
   plugins: [
     react(),

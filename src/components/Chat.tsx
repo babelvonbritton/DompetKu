@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — chat tab.
+// DompetKu v1.0.3 — chat tab.
 // The composer stays above the virtual keyboard: the viewport uses
 // interactive-widget=resizes-content and the list scrolls to the newest
 // message whenever the viewport resizes. The typing indicator shows for as

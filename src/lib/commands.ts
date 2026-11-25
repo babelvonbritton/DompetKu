@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — slash-command catalog for the chat composer.
+// DompetKu v1.0.3 — slash-command catalog for the chat composer.
 // One source of truth: the names here must match parseCommand in
 // parser.ts. The help reply is built from this list too, so the menu and
 // /bantuan can never drift apart.

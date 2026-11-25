@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — dashboard home (Option 2).
+// DompetKu v1.0.3 — dashboard home (Option 2).
 // Money first: what is left this month, warnings, wallets, recent activity.
 
 import { budgetStatus, cycleRange, formatIDR, sumSpent } from '../lib/money';

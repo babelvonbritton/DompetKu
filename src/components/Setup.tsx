@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — quick first-run setup.
+// DompetKu v1.0.3 — quick first-run setup.
 // One wallet + budget first; the API key comes later (the chat reminds).
 
 import { useState } from 'react';

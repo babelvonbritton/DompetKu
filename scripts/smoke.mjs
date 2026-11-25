@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — real-browser smoke test (Playwright).
+// DompetKu v1.0.3 — real-browser smoke test (Playwright).
 // Run: SMOKE_URL=http://localhost:4173/ node scripts/smoke.mjs
 // Uses the Playwright install from the Brewfolio tree (NODE_PATH).
 import { chromium } from '/home/hatch/workspace/brewfolio-v110/node_modules/playwright/index.mjs';
@@ -56,21 +56,39 @@ try {
   await page.addInitScript(() => {
     const origFetch = window.fetch.bind(window);
     const calls = (window.__driveCalls = window.__driveCalls ?? []);
+    // The stubbed Drive folder: uploads register a file here, so a later
+    // list finds it and a later download can serve it back.
+    window.__driveFiles = window.__driveFiles ?? [];
+    window.__driveBytesB64 = window.__driveBytesB64 ?? null;
     window.fetch = async (...args) => {
       const url = String(args[0]);
       if (url.includes('www.googleapis.com')) {
         calls.push(`${args[1]?.method ?? 'GET'} ${url}`);
-        if (url.includes('/drive/v3/files?')) {
-          return new Response(JSON.stringify({ files: [] }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
         if (url.includes('/upload/drive/v3/files')) {
+          window.__driveFiles = [
+            {
+              id: 'smoke-file-id',
+              name: 'dompetku-backup.dompetku',
+              modifiedTime: new Date().toISOString(),
+              size: 0,
+            },
+          ];
           return new Response(
             JSON.stringify({ id: 'smoke-file-id', modifiedTime: new Date().toISOString() }),
             { status: 200, headers: { 'Content-Type': 'application/json' } },
           );
+        }
+        if (url.includes('/drive/v3/files?')) {
+          return new Response(JSON.stringify({ files: window.__driveFiles }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        if (url.includes('/drive/v3/files/') && url.includes('alt=media')) {
+          const b64 = window.__driveBytesB64;
+          if (!b64) return new Response('', { status: 404 });
+          const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+          return new Response(bytes, { status: 200 });
         }
         return new Response('', { status: 404 });
       }
@@ -350,10 +368,19 @@ try {
   );
 
   // v1.0.0: importing the just-made backup finds the data up to date.
+  // v1.0.3: choosing a file alone starts nothing — the restore only runs
+  // on the Pulihkan button, with the passphrase filled in.
   await page.getByRole('button', { name: 'Pengaturan', exact: true }).click();
   await expandSection(page, 'Cadangkan & pulihkan');
-  await page.fill('#import-pass', 'rahasia123');
   await page.setInputFiles('#import-file', backupPath);
+  await page.waitForTimeout(1000);
+  check(
+    'choosing a file does not start the restore',
+    (await page.getByText('Datamu sudah sama dengan cadangan').count()) === 0 &&
+      (await page.getByText('File terpilih:').count()) === 1,
+  );
+  await page.fill('#import-pass', 'rahasia123');
+  await page.getByRole('button', { name: 'Pulihkan dari file' }).click();
   await page.getByText('Datamu sudah sama dengan cadangan').waitFor({ timeout: 15000 });
   check('identical backup shows the up-to-date toast', true);
 
@@ -366,8 +393,9 @@ try {
   await page.getByText('Sudah dicatat.').nth(3).waitFor({ timeout: 5000 });
   await page.getByRole('button', { name: 'Pengaturan', exact: true }).click();
   await expandSection(page, 'Cadangkan & pulihkan');
-  await page.fill('#import-pass', 'rahasia123');
   await page.setInputFiles('#import-file', backupPath);
+  await page.fill('#import-pass', 'rahasia123');
+  await page.getByRole('button', { name: 'Pulihkan dari file' }).click();
   await page.getByRole('heading', { name: 'Pulihkan cadangan?' }).waitFor({ timeout: 15000 });
   check('review dialog opens for a differing backup', true);
   check(
@@ -380,8 +408,9 @@ try {
   check('cancel keeps the current data', true);
   await page.getByRole('button', { name: 'Pengaturan', exact: true }).click();
   await expandSection(page, 'Cadangkan & pulihkan');
-  await page.fill('#import-pass', 'rahasia123');
   await page.setInputFiles('#import-file', backupPath);
+  await page.fill('#import-pass', 'rahasia123');
+  await page.getByRole('button', { name: 'Pulihkan dari file' }).click();
   await page.getByRole('heading', { name: 'Pulihkan cadangan?' }).waitFor({ timeout: 15000 });
   await page.getByLabel(/Simpan cadangan pengaman/).uncheck();
   await page.getByRole('button', { name: 'Pulihkan cadangan', exact: true }).click();
@@ -419,10 +448,17 @@ try {
   await page.getByRole('button', { name: 'Pengaturan', exact: true }).click();
   await expandSection(page, 'Google Drive');
   await page.getByText('Status: Terhubung').waitFor({ timeout: 5000 });
-  await expandSection(page, 'Cadangkan & pulihkan');
-  await page.fill('#export-pass', 'rahasia123');
-  await page.fill('#export-pass-confirm', 'rahasia123');
-  await expandSection(page, 'Google Drive');
+  // v1.0.3: the Drive backup has its own passphrase fields, next to its
+  // buttons — tapping Cadangkan with them empty must complain in-section,
+  // where the fields are.
+  await page.getByRole('button', { name: 'Cadangkan ke Drive' }).click();
+  check(
+    'empty Drive passphrase errors in the Drive section',
+    await page.locator('section[aria-labelledby="drive-heading"] .form-error').isVisible() &&
+      ((await page.locator('section[aria-labelledby="drive-heading"] .form-error').textContent()) ?? '').includes('Kata sandi minimal 8 karakter.'),
+  );
+  await page.fill('#drive-pass', 'rahasia123');
+  await page.fill('#drive-pass-confirm', 'rahasia123');
   await page.getByRole('button', { name: 'Cadangkan ke Drive' }).click();
   await page.getByText('Cadangan tersimpan di Google Drive.').waitFor({ timeout: 15000 });
   check('Drive backup reports success in its section', true);
@@ -437,12 +473,27 @@ try {
     ((await page.locator('section[aria-labelledby="drive-heading"] p').first().textContent()) ?? '').includes('cadangan terakhir'),
   );
 
+  // v1.0.3: Drive restore is two-phase — the first tap fetches and holds
+  // the backup, the passphrase is filled afterwards, the second tap
+  // decrypts it. The stubbed download serves the file backup's bytes,
+  // which hold the same data, so the restore finds everything up to date.
+  await page.evaluate((b64) => { window.__driveBytesB64 = b64; }, readFileSync(backupPath).toString('base64'));
+  await page.fill('#drive-pass', '');
+  await page.fill('#drive-pass-confirm', '');
+  await page.getByRole('button', { name: 'Pulihkan dari Drive' }).click();
+  await page.getByText('Cadangan dari Drive ditemukan.').waitFor({ timeout: 15000 });
+  check('Drive restore holds the backup first and asks for the passphrase', true);
+  await page.fill('#drive-pass', 'rahasia123');
+  await page.getByRole('button', { name: 'Pulihkan dari Drive' }).click();
+  await page.getByText('Datamu sudah sama dengan cadangan').waitFor({ timeout: 15000 });
+  check('Drive restore decrypts the held backup', true);
+
   // v1.0.0: About carries the version and the copyright.
   await page.getByRole('button', { name: 'Pengaturan', exact: true }).click();
   await expandSection(page, 'Tentang');
   check(
-    'About shows DompetKu 1.0.2',
-    await page.getByText('DompetKu 1.0.2').isVisible(),
+    'About shows DompetKu 1.0.3',
+    await page.getByText('DompetKu 1.0.3').isVisible(),
   );
   check(
     'About shows the copyright',

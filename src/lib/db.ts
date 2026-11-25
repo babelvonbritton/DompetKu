@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — local-first store (Dexie / IndexedDB).
+// DompetKu v1.0.3 — local-first store (Dexie / IndexedDB).
 // Everything lives on the device. No account, no server.
 
 import Dexie, { type EntityTable } from 'dexie';

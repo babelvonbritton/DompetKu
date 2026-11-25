@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — settings tab.
+// DompetKu v1.0.3 — settings tab.
 // Gemini BYOK key + in-app guide, launch tab, encrypted backup (file and
 // Google Drive), privacy. Categories and chat history live in the chat
 // settings sheet (gear button in the chat header), not here.
@@ -93,7 +93,8 @@ export function Settings({
   onDriveConnect,
   onDriveDisconnect,
   onDriveBackup,
-  onDriveRestore,
+  onDriveFetch,
+  onDriveDecrypt,
   onOpenPrivacy,
 }: {
   settings: Settings;
@@ -116,7 +117,9 @@ export function Settings({
     passphrase: string,
     onProgress?: BackupProgress,
   ) => Promise<void>;
-  onDriveRestore: (
+  onDriveFetch: (onProgress?: BackupProgress) => Promise<Uint8Array>;
+  onDriveDecrypt: (
+    bytes: Uint8Array,
     passphrase: string,
     onProgress?: BackupProgress,
   ) => Promise<InspectResult>;
@@ -130,6 +133,7 @@ export function Settings({
   const [exportPass, setExportPass] = useState('');
   const [exportPassConfirm, setExportPassConfirm] = useState('');
   const [importPass, setImportPass] = useState('');
+  const [importFile, setImportFile] = useState<File | null>(null);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [keyStatus, setKeyStatus] = useState('');
@@ -203,8 +207,11 @@ export function Settings({
     }
   }
 
-  async function doImport(file: File | undefined): Promise<void> {
-    if (!file) {
+  async function doImport(): Promise<void> {
+    // Choosing a file never starts the restore by itself: the file is
+    // only picked here, and the Pulihkan button below runs the restore
+    // with the filled-in passphrase.
+    if (!importFile) {
       setError('Pilih file cadangan dulu.');
       return;
     }
@@ -213,9 +220,10 @@ export function Settings({
       return;
     }
     const result = await runFlow(IMPORT_STEPS, (advance) =>
-      onImport(file, importPass, advance),
+      onImport(importFile, importPass, advance),
     );
     if (fileRef.current) fileRef.current.value = '';
+    setImportFile(null);
     if (result?.status === 'differs') {
       // Keep the passphrase: the review dialog needs it for the safety
       // backup when the user applies the restore.
@@ -452,7 +460,10 @@ export function Settings({
             type="file"
             accept=".dompetku,.json,application/octet-stream,application/json"
             disabled={busy}
-            onChange={(e) => void doImport(e.target.files?.[0])}
+            onChange={(e) => {
+              setImportFile(e.target.files?.[0] ?? null);
+              setError('');
+            }}
           />
           <p className="hint">
             File .json dari versi lama masih bisa dipulihkan. Cadangan lama
@@ -471,11 +482,21 @@ export function Settings({
             autoComplete="current-password"
           />
           <p className="hint">
-            Pilih file di atas, lalu isi kata sandinya — pemulihan berjalan
-            begitu file dipilih. Datamu tidak berubah sampai kamu setuju di
-            layar perbandingan.
+            Pilih file, isi kata sandinya, lalu tekan Pulihkan dari file.
+            Datamu tidak berubah sampai kamu setuju di layar perbandingan.
           </p>
         </div>
+        {importFile ? (
+          <p className="hint">File terpilih: {importFile.name}</p>
+        ) : null}
+        <button
+          type="button"
+          className="button-primary small"
+          onClick={() => void doImport()}
+          disabled={busy || !importFile}
+        >
+          Pulihkan dari file
+        </button>
         {stepper.steps ? <Stepper steps={stepper.steps} /> : null}
         {status ? (
           <p className="form-status" role="status">
@@ -497,13 +518,12 @@ export function Settings({
       >
         <DriveSection
           settings={settings}
-          backupPassphrase={exportPass}
-          backupPassphraseConfirm={exportPassConfirm}
           onSaveSettings={onSaveSettings}
           onDriveConnect={onDriveConnect}
           onDriveDisconnect={onDriveDisconnect}
           onDriveBackup={onDriveBackup}
-          onDriveRestore={onDriveRestore}
+          onDriveFetch={onDriveFetch}
+          onDriveDecrypt={onDriveDecrypt}
           onInspected={onInspected}
         />
       </Section>

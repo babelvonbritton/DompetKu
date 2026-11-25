@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — chat engine.
+// DompetKu v1.0.3 — chat engine.
 // Cascade: with a Gemini key, Gemini answers first and the local rules
 // parser is the fallback (network failure, quota). Without a key the parser
 // is the only engine. Slash commands always go to the parser — they are

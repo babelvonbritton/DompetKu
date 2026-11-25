@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — wallet list and editing.
+// DompetKu v1.0.3 — wallet list and editing.
 // Budget, cycle start day and warn percent are set per wallet.
 
 import { useState } from 'react';

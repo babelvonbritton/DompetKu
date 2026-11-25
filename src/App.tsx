@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — app shell.
+// DompetKu v1.0.3 — app shell.
 // Loads the local store, gates first-run setup, switches tabs, owns the
 // floating navbar. No router: one tab state, static-export friendly.
 // Tab switches run through the View Transitions API when the browser has it
@@ -289,6 +289,9 @@ export default function App() {
           geminiApiKey: current.geminiApiKey,
           driveAccessToken: current.driveAccessToken,
           driveTokenExpiresAt: current.driveTokenExpiresAt,
+          // The last-backup date describes the Drive folder, not the data
+          // being restored — a restore must not rewind it.
+          driveLastBackupAt: current.driveLastBackupAt,
         });
         await stores.wallets.bulkAdd(data.wallets);
         await stores.transactions.bulkAdd(data.transactions);
@@ -432,10 +435,13 @@ export default function App() {
     await handleSaveSettings({ driveLastBackupAt: Date.now() });
   }
 
-  async function handleDriveRestore(
-    passphrase: string,
+  /**
+   * Drive restore, phase 1: fetch the backup bytes from Drive and hold
+   * them. The password is only asked for afterwards, in phase 2.
+   */
+  async function handleDriveFetch(
     onProgress?: BackupProgress,
-  ): Promise<InspectResult> {
+  ): Promise<Uint8Array> {
     const token = await driveToken();
     if (!token) throw new DriveAuthError();
     const existing = await driveService.listBackups(token);
@@ -443,7 +449,15 @@ export default function App() {
       throw new Error('Belum ada cadangan di Google Drive.');
     }
     await onProgress?.('download');
-    const bytes = await driveService.downloadBackup(token, existing[0].id);
+    return driveService.downloadBackup(token, existing[0].id);
+  }
+
+  /** Drive restore, phase 2: decrypt held bytes and compare. */
+  async function handleDriveDecrypt(
+    bytes: Uint8Array,
+    passphrase: string,
+    onProgress?: BackupProgress,
+  ): Promise<InspectResult> {
     const { data } = await backupService.parse(bytes, passphrase, onProgress);
     await onProgress?.('compare');
     return inspectParsed(data);
@@ -529,7 +543,8 @@ export default function App() {
             onDriveConnect={handleDriveConnect}
             onDriveDisconnect={handleDriveDisconnect}
             onDriveBackup={handleDriveBackup}
-            onDriveRestore={handleDriveRestore}
+            onDriveFetch={handleDriveFetch}
+            onDriveDecrypt={handleDriveDecrypt}
             onOpenPrivacy={() => setShowPrivacy(true)}
           />
         ) : null}

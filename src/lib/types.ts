@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — shared types.
+// DompetKu v1.0.3 — shared types.
 // Comments are general and functional only.
 
 export type CurrencyCode = 'IDR';

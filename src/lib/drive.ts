@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — Google Drive cloud backup.
+// DompetKu v1.0.3 — Google Drive cloud backup.
 // The backup file lives in the app's own Drive folder (appDataFolder), so
 // the app can only see its own backup, never the user's other Drive files.
 // Auth is Google Identity Services (token client, no server). Sign-in is

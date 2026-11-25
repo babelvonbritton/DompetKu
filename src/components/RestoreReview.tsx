@@ -1,4 +1,4 @@
-// DompetKu v1.0.2 — restore review dialog.
+// DompetKu v1.0.3 — restore review dialog.
 // After a backup is verified, the user sees what differs (counts on both
 // sides, the short list of changes) and decides: apply the backup, or
 // keep the current data. Nothing is written before the user chooses.
